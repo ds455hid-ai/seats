@@ -16,6 +16,7 @@
   .pill{padding:6px clamp(11px,1.3vw,16px);border-radius:999px;font-weight:800;font-size:clamp(13px,1.4vw,17px);white-space:nowrap}
   .p-free{background:#dcfce7;color:#166534}
   .p-seat{background:#e0f2fe;color:#075985}
+  .p-guest{background:#ede9fe;color:#5b21b6}
   .p-on{background:#dcfce7;color:#166534}
   .p-off{background:#fee2e2;color:#991b1b}
   .reset{align-self:flex-start;padding:8px clamp(12px,1.3vw,18px);border:0;border-radius:10px;background:#e2e8f0;font-weight:800;cursor:pointer;min-height:var(--touch);font-size:clamp(13px,1.3vw,16px)}
@@ -27,15 +28,17 @@
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(8px,1.3vw,16px);padding:clamp(10px,1.6vw,22px);max-width:var(--maxw);margin:0 auto}
   @media(min-width:600px){.grid{grid-template-columns:repeat(4,1fr)}}
 
-  .card{position:relative;display:flex;flex-direction:column;text-align:left;border:0;border-radius:clamp(12px,1.2vw,18px);padding:clamp(12px,1.3vw,20px);min-height:clamp(108px,15vh,176px);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.06);border-left:8px solid #cbd5e1;background:#fff;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:transform .08s ease,box-shadow .12s ease}
+  .card{position:relative;display:flex;flex-direction:column;text-align:left;border:0;border-radius:clamp(12px,1.2vw,18px);padding:clamp(12px,1.3vw,20px);min-height:clamp(112px,15vh,180px);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.06);border-left:8px solid #cbd5e1;background:#fff;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:transform .08s ease,box-shadow .12s ease}
   .card:active{transform:scale(.98)}
-  .more{position:absolute;top:8px;right:8px;width:clamp(34px,2.8vw,44px);height:clamp(34px,2.8vw,44px);border:0;border-radius:9px;background:rgba(15,23,42,.06);color:#334155;font-size:clamp(18px,1.8vw,24px);font-weight:900;line-height:1;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
-  .more:active{background:rgba(15,23,42,.16)}
-  .card-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;padding-right:44px}
+  .more{position:absolute;top:8px;right:8px;min-width:clamp(56px,7vw,74px);height:clamp(30px,3vw,38px);border:0;border-radius:9px;background:rgba(37,99,235,.1);color:#1e40af;font-size:clamp(12px,1.2vw,14px);font-weight:900;line-height:1;cursor:pointer;padding:0 8px;display:flex;align-items:center;justify-content:center;gap:4px}
+  .more:active{background:rgba(37,99,235,.2)}
+  .card-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;padding-right:82px}
   .c-label{font-weight:900;font-size:clamp(15px,1.6vw,22px)}
   .c-seats{font-size:clamp(11px,1.05vw,14px);color:#64748b;font-weight:700}
   .c-status{font-size:clamp(17px,1.9vw,26px);font-weight:900}
-  .c-memo{margin-top:6px;font-size:clamp(12px,1.15vw,15px);color:#334155;background:#f8fafc;border-radius:8px;padding:5px 9px;word-break:break-word}
+  .c-res{margin-top:7px;font-size:clamp(13px,1.35vw,17px);font-weight:800;color:#0f172a}
+  .c-menu{margin-top:5px;font-size:clamp(12px,1.15vw,14px);color:#334155;background:#f8fafc;border-radius:8px;padding:5px 9px;word-break:break-word}
+  .c-note{margin-top:5px;font-size:clamp(11px,1.1vw,13px);color:#64748b;word-break:break-word}
   .c-hint{margin-top:auto;padding-top:8px;font-size:clamp(10px,1vw,13px);color:#94a3b8;font-weight:800}
   .s-VACANT{border-left-color:#16a34a;background:linear-gradient(#f0fdf4,#fff)}
   .s-RESERVED{border-left-color:#d97706;background:linear-gradient(#fffbeb,#fff)}
@@ -44,19 +47,38 @@
   .s-CLOSED{border-left-color:#4b5563;background:linear-gradient(#f8fafc,#fff);opacity:.75}
   @media(hover:hover) and (pointer:fine){
     .card:hover{box-shadow:0 6px 18px rgba(0,0,0,.12);transform:translateY(-2px)}
-    .more:hover{background:rgba(15,23,42,.12)}
+    .more:hover{background:rgba(37,99,235,.18)}
   }
 
-  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px;z-index:50}
-  .modal{background:#fff;border-radius:16px;padding:clamp(16px,2vw,24px);width:100%;max-width:clamp(320px,72vw,520px)}
-  .modal-title{font-weight:900;font-size:clamp(17px,1.9vw,24px);margin-bottom:14px}
-  .status-row{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(5px,.8vw,10px);margin-bottom:16px}
-  .st-btn{border:2px solid #e2e8f0;background:#fff;border-radius:10px;padding:8px 2px;font-size:clamp(12px,1.3vw,15px);font-weight:800;cursor:pointer;min-height:clamp(58px,8vh,84px);line-height:1.3}
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:flex-start;justify-content:center;padding:16px;z-index:50;overflow-y:auto}
+  .modal{background:#fff;border-radius:16px;padding:clamp(14px,2vw,24px);width:100%;max-width:min(520px, calc(100vw - 28px));margin:auto;overflow-x:hidden}
+  .modal-title{font-weight:900;font-size:clamp(18px,2vw,24px);margin-bottom:6px}
+  .sec{font-size:clamp(12px,1.2vw,14px);font-weight:800;color:#475569;margin:16px 0 7px}
+  .status-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(4px,.8vw,10px)}
+  .st-btn{border:2px solid #e2e8f0;background:#fff;border-radius:10px;padding:8px 2px;font-size:clamp(12px,1.3vw,15px);font-weight:800;cursor:pointer;min-height:clamp(56px,8vh,80px);line-height:1.3;color:#0f172a}
   .st-btn.active{border-color:#0f172a;box-shadow:0 0 0 2px rgba(15,23,42,.15) inset}
-  .memo-label{display:block;font-size:clamp(12px,1.2vw,15px);font-weight:800;color:#475569;margin-bottom:6px}
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{min-height:44px;padding:8px 15px;border:2px solid #e2e8f0;background:#fff;border-radius:10px;font-weight:800;font-size:16px;cursor:pointer;color:#0f172a}
+  .chip.active{border-color:#2563eb;background:#eff6ff;color:#1e40af}
+  .stepper{display:flex;align-items:center;gap:16px}
+  .step-btn{width:56px;height:50px;border:0;border-radius:12px;background:#e2e8f0;font-size:28px;font-weight:900;cursor:pointer;line-height:1;color:#0f172a}
+  .step-btn:active{background:#cbd5e1}
+  .step-val{font-size:30px;font-weight:900;min-width:44px;text-align:center}
+  .step-unit{font-size:17px;font-weight:800;color:#475569}
+  .menu-list{display:flex;flex-direction:column;gap:8px}
+  .menu-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:2px solid #eef2f7;border-radius:12px;background:#fff}
+  .menu-item.on{border-color:#16a34a;background:#f0fdf4}
+  .menu-info{display:flex;flex-direction:column;min-width:0}
+  .menu-name{font-weight:800;font-size:14px;line-height:1.25}
+  .menu-price{font-size:12px;color:#64748b;font-weight:700}
+  .menu-qty{display:flex;align-items:center;gap:8px;flex:none}
+  .qbtn{width:42px;height:42px;border:0;border-radius:10px;background:#e2e8f0;font-size:23px;font-weight:900;cursor:pointer;line-height:1;color:#0f172a}
+  .qbtn:active{background:#cbd5e1}
+  .qval{min-width:24px;text-align:center;font-size:19px;font-weight:900}
+  .memo-label{display:block;font-size:clamp(12px,1.2vw,14px);font-weight:800;color:#475569;margin:16px 0 6px}
   .memo-input{width:100%;min-height:var(--touch);padding:10px;border:2px solid #cbd5e1;border-radius:10px;font-size:16px}
-  .modal-actions{display:flex;gap:10px;margin-top:16px}
-  .btn{flex:1;min-height:var(--touch);border:0;border-radius:10px;font-weight:800;font-size:clamp(14px,1.4vw,17px);cursor:pointer}
+  .modal-actions{display:flex;gap:10px;margin-top:18px;position:sticky;bottom:0;background:#fff;padding-top:6px}
+  .btn{flex:1;min-height:48px;border:0;border-radius:10px;font-weight:800;font-size:clamp(15px,1.5vw,18px);cursor:pointer}
   .btn-save{background:#2563eb;color:#fff}
   .btn-close{background:#e2e8f0;color:#0f172a}
   .setup-warn{margin:16px;padding:14px;border-radius:12px;background:#fef3c7;color:#92400e;font-weight:700;display:none}
@@ -68,6 +90,7 @@
   <div class="metrics">
     <span class="pill p-free" id="m-tables">空き —卓</span>
     <span class="pill p-seat" id="m-seats">空き —席</span>
+    <span class="pill p-guest" id="m-guests">来店予定 —名</span>
     <span class="pill p-off" id="m-conn">接続中…</span>
   </div>
   <button class="reset" id="resetBtn">全席リセット</button>
@@ -82,11 +105,11 @@
 <div class="modal-bg" id="modalBg">
   <div class="modal">
     <div class="modal-title" id="modalTitle">テーブル</div>
-    <div class="status-row" id="statusRow"></div>
-    <label class="memo-label" for="memoInput">メモ（任意）　例: 18:00 田中様4名 / コースA</label>
-    <input class="memo-input" id="memoInput" type="text" maxlength="60" placeholder="予約時間・お名前・人数・メニューなど">
+    <div id="editControls"></div>
+    <label class="memo-label" for="noteInput">お名前・メモ（任意）</label>
+    <input class="memo-input" id="noteInput" type="text" maxlength="60" placeholder="例: 田中様 / アレルギー: えび">
     <div class="modal-actions">
-      <button class="btn btn-save" id="memoSave">メモを保存</button>
+      <button class="btn btn-save" id="saveBtn">保存する</button>
       <button class="btn btn-close" id="modalClose">閉じる</button>
     </div>
   </div>
@@ -96,8 +119,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script>
 /* ============================================================
-   ① ここにFirebaseの設定を貼り付け（Firebaseコンソールで取得）
-   ※ databaseURL が必須です（Realtime Database）
+   ① Firebaseの設定（Realtime Database）
    ============================================================ */
 const firebaseConfig = {
   apiKey: "AIzaSyDE_4P39KcJQjA5wb4HaxlQRjB-U7REVCo",
@@ -110,7 +132,7 @@ const firebaseConfig = {
 };
 
 /* ============================================================
-   ② お店に合わせて編集（卓の数・名前・席数・状態の種類）
+   ② お店に合わせて編集（卓・営業時間・メニュー）
    ============================================================ */
 const SETUP = {
   boardName: '山しのぶ 座席ボード',
@@ -130,21 +152,48 @@ const SETUP = {
     {key:'SEATED',   label:'使用中',  emoji:'🔴'},
     {key:'PREP',     label:'準備中',  emoji:'🟣'},
     {key:'CLOSED',   label:'クローズ',emoji:'⚫'}
+  ],
+  // 予約時間の選択肢（営業時間・刻み）
+  business: { open:'18:00', close:'21:00', stepMin:30 },
+  // メニュー（＋タップで人数分を入れられます）
+  menus: [
+    {key:'m1', name:'おまかせ御膳',                 price:7700, short:'御膳7700'},
+    {key:'m2', name:'おまかせ御膳',                 price:5500, short:'御膳5500'},
+    {key:'m3', name:'おまかせ御膳',                 price:4400, short:'御膳4400'},
+    {key:'m4', name:'赤牛サーロインステーキ御膳',   price:5500, short:'赤牛サーロイン'},
+    {key:'m5', name:'赤牛すき焼き御膳',             price:4180, short:'赤牛すき焼き'},
+    {key:'m6', name:'熊本県産あそび豚かつ御膳',     price:3300, short:'あそび豚かつ'},
+    {key:'m7', name:'旬野菜の天ぷら御膳',           price:3300, short:'天ぷら御膳'},
+    {key:'m8', name:'赤牛サイコロステーキセット',   price:4200, short:'赤牛サイコロ'},
+    {key:'m9', name:'赤牛ハンバーグ御膳',           price:4500, short:'赤牛ハンバーグ'}
   ]
 };
 /* ==================== 編集はここまで ==================== */
 
-const statusMap = {};
-SETUP.statuses.forEach(s => statusMap[s.key] = s);
+const statusMap = {}; SETUP.statuses.forEach(s => statusMap[s.key] = s);
+const MENUS = SETUP.menus;
+const menuByKey = {}; MENUS.forEach(m => menuByKey[m.key] = m);
 
 let state = {};
 let editingId = null;
+let draft = null;
 
-function esc(s){
-  return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function yen(n){ return Number(n||0).toLocaleString('ja-JP'); }
+function timeSlots(){
+  const b = SETUP.business;
+  const [oh,om] = b.open.split(':').map(Number);
+  const [ch,cm] = b.close.split(':').map(Number);
+  const out = []; let t = oh*60+om; const end = ch*60+cm;
+  while(t <= end){ const h=Math.floor(t/60), m=t%60; out.push((h<10?'0'+h:h)+':'+(m<10?'0'+m:m)); t += b.stepMin; }
+  return out;
+}
+function menuSummary(menu){
+  if(!menu) return '';
+  return MENUS.filter(m => (menu[m.key]||0) > 0).map(m => m.short+'×'+menu[m.key]).join(' / ');
 }
 
-// 設定未入力なら警告だけ出して停止
+/* ---- 設定チェック ---- */
 if (!firebaseConfig.databaseURL || firebaseConfig.databaseURL === 'PASTE_HERE') {
   document.getElementById('setupWarn').style.display = 'block';
 } else {
@@ -155,19 +204,17 @@ function startApp(){
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   const boardRef = db.ref('board/tables');
+  const TS = firebase.database.ServerValue.TIMESTAMP;
 
-  // 初回だけ初期データを作成（アトミック）
   boardRef.transaction(cur => {
     if (cur !== null) return cur;
     const seed = {};
-    SETUP.tables.forEach(t => seed[t.id] = {label:t.label, seats:t.seats, status:'VACANT', memo:'', updatedAt: Date.now()});
+    SETUP.tables.forEach(t => seed[t.id] = {label:t.label, seats:t.seats, status:'VACANT', time:'', party:0, note:'', updatedAt: Date.now()});
     return seed;
   });
 
-  // リアルタイム購読（ここが即時反映の心臓部）
   boardRef.on('value', snap => { state = snap.val() || {}; render(); });
 
-  // 接続状態インジケータ
   db.ref('.info/connected').on('value', s => {
     const on = s.val() === true;
     const el = document.getElementById('m-conn');
@@ -175,36 +222,33 @@ function startApp(){
     el.className = 'pill ' + (on ? 'p-on' : 'p-off');
   });
 
-  // 状態変更（詳細モーダル）
-  window.setStatus = function(key){
-    if(!editingId) return;
-    const upd = { status:key, updatedAt: firebase.database.ServerValue.TIMESTAMP };
-    if(key === 'VACANT'){ upd.memo = ''; document.getElementById('memoInput').value = ''; }
-    db.ref('board/tables/'+editingId).update(upd);
-    document.querySelectorAll('#statusRow .st-btn').forEach(b => b.classList.remove('active'));
-    const btn = document.querySelector('#statusRow .st-'+key);
-    if(btn) btn.classList.add('active');
-  };
-  // ワンタップ切替（カード本体タップで 空席 ⇄ 使用中）
+  // カード本体タップ＝空席⇄使用中（予約情報は使用中では保持、空席で消去）
   window.quickToggle = function(id){
     const cur = (state[id] && state[id].status) || 'VACANT';
     const next = (cur === 'SEATED') ? 'VACANT' : 'SEATED';
-    const upd = { status:next, updatedAt: firebase.database.ServerValue.TIMESTAMP };
-    if(next === 'VACANT') upd.memo = '';
+    const upd = { status:next, updatedAt: TS };
+    if (next === 'VACANT'){ upd.time=''; upd.party=0; upd.menu={}; upd.note=''; }
     db.ref('board/tables/'+id).update(upd);
   };
-  // メモ保存
-  document.getElementById('memoSave').onclick = function(){
+  // 保存（詳細モーダル）
+  window.saveEdit = function(){
     if(!editingId) return;
-    const memo = document.getElementById('memoInput').value.slice(0,60);
-    db.ref('board/tables/'+editingId).update({ memo:memo, updatedAt: firebase.database.ServerValue.TIMESTAMP });
+    const isVac = draft.status === 'VACANT';
+    const note = isVac ? '' : document.getElementById('noteInput').value.slice(0,60);
+    db.ref('board/tables/'+editingId).update({
+      status: draft.status,
+      time:  isVac ? '' : (draft.time || ''),
+      party: isVac ? 0  : (draft.party || 0),
+      menu:  isVac ? {} : (draft.menu || {}),
+      note:  note,
+      updatedAt: TS
+    });
     closeModal();
   };
-  // 全席リセット
   document.getElementById('resetBtn').onclick = function(){
     if(!confirm('全てのテーブルを「空席」に戻します。よろしいですか？')) return;
     const upd = {};
-    SETUP.tables.forEach(t => { upd[t.id+'/status']='VACANT'; upd[t.id+'/memo']=''; upd[t.id+'/updatedAt']=Date.now(); });
+    SETUP.tables.forEach(t => { upd[t.id+'/status']='VACANT'; upd[t.id+'/time']=''; upd[t.id+'/party']=0; upd[t.id+'/menu']={}; upd[t.id+'/note']=''; upd[t.id+'/updatedAt']=Date.now(); });
     boardRef.update(upd);
   };
 }
@@ -212,36 +256,84 @@ function startApp(){
 function render(){
   document.getElementById('brand').textContent = SETUP.boardName;
   const grid = document.getElementById('grid');
-  let freeTables = 0, freeSeats = 0;
+  let freeTables = 0, freeSeats = 0, guests = 0;
   grid.innerHTML = SETUP.tables.map(t => {
-    const d = state[t.id] || {status:'VACANT', memo:''};
+    const d = state[t.id] || {status:'VACANT'};
     const st = statusMap[d.status] || statusMap['VACANT'];
     if (d.status === 'VACANT'){ freeTables++; freeSeats += (t.seats||0); }
+    if (d.status === 'RESERVED' || d.status === 'SEATED'){ guests += (Number(d.party)||0); }
+    const bits = [];
+    if (d.time) bits.push('🕐'+esc(d.time));
+    if (d.party) bits.push('👤'+d.party+'名');
+    const resLine = bits.join('　');
+    const menuStr = menuSummary(d.menu);
     const hint = (d.status === 'SEATED') ? 'タップで空席に' : 'タップで使用中に';
     return '<div class="card s-'+d.status+'" onclick="quickToggle(\''+t.id+'\')">'
-      + '<button class="more" onclick="event.stopPropagation();openEdit(\''+t.id+'\')" aria-label="詳細・予約・メモ">⋯</button>'
+      + '<button class="more" onclick="event.stopPropagation();openEdit(\''+t.id+'\')" aria-label="予約・詳細を入力">✎ 入力</button>'
       + '<div class="card-top"><span class="c-label">'+esc(t.label)+'</span><span class="c-seats">'+t.seats+'席</span></div>'
       + '<div class="c-status">'+st.emoji+' '+st.label+'</div>'
-      + (d.memo ? '<div class="c-memo">'+esc(d.memo)+'</div>' : '')
+      + (resLine ? '<div class="c-res">'+resLine+'</div>' : '')
+      + (menuStr ? '<div class="c-menu">'+esc(menuStr)+'</div>' : '')
+      + (d.note ? '<div class="c-note">'+esc(d.note)+'</div>' : '')
       + '<div class="c-hint">'+hint+'</div>'
       + '</div>';
   }).join('');
   document.getElementById('m-tables').textContent = '空き '+freeTables+'卓';
   document.getElementById('m-seats').textContent  = '空き '+freeSeats+'席';
+  document.getElementById('m-guests').textContent = '来店予定 '+guests+'名';
 }
 
+/* ---- 詳細モーダル（タップだけで入力） ---- */
 window.openEdit = function(id){
   editingId = id;
   const t = SETUP.tables.find(x => x.id === id);
   const d = state[id] || {};
-  document.getElementById('modalTitle').textContent = t ? t.label+'（'+t.seats+'席）' : id;
-  document.getElementById('memoInput').value = d.memo || '';
-  document.getElementById('statusRow').innerHTML = SETUP.statuses.map(s =>
-    '<button class="st-btn st-'+s.key+((d.status===s.key)?' active':'')+'" onclick="setStatus(\''+s.key+'\')">'+s.emoji+'<br>'+s.label+'</button>'
-  ).join('');
+  draft = { status: d.status || 'VACANT', time: d.time || '', party: Number(d.party)||0, menu: Object.assign({}, d.menu || {}) };
+  document.getElementById('modalTitle').textContent = t ? (t.label+'（'+t.seats+'席）') : id;
+  document.getElementById('noteInput').value = d.note || '';
+  renderControls();
   document.getElementById('modalBg').style.display = 'flex';
 };
-function closeModal(){ document.getElementById('modalBg').style.display='none'; editingId=null; }
+function renderControls(){
+  let h = '';
+  h += '<div class="sec">状態</div><div class="status-row">'
+    + SETUP.statuses.map(s => '<button class="st-btn st-'+s.key+(draft.status===s.key?' active':'')+'" onclick="pickStatus(\''+s.key+'\')">'+s.emoji+'<br>'+s.label+'</button>').join('')
+    + '</div>';
+  h += '<div class="sec">時間（'+SETUP.business.open+'〜'+SETUP.business.close+'）</div><div class="chip-row">'
+    + timeSlots().map(t => '<button class="chip'+(draft.time===t?' active':'')+'" onclick="pickTime(\''+t+'\')">'+t+'</button>').join('')
+    + '<button class="chip'+(!draft.time?' active':'')+'" onclick="pickTime(\'\')">未定</button>'
+    + '</div>';
+  h += '<div class="sec">人数</div><div class="stepper">'
+    + '<button class="step-btn" onclick="addParty(-1)">−</button>'
+    + '<span class="step-val">'+(draft.party||0)+'</span><span class="step-unit">名</span>'
+    + '<button class="step-btn" onclick="addParty(1)">＋</button>'
+    + '</div>';
+  h += '<div class="sec">メニュー（＋で人数分を追加）</div><div class="menu-list">'
+    + MENUS.map(m => {
+        const c = (draft.menu && draft.menu[m.key]) || 0;
+        return '<div class="menu-item'+(c>0?' on':'')+'">'
+          + '<div class="menu-info"><span class="menu-name">'+esc(m.name)+'</span><span class="menu-price">'+yen(m.price)+'円</span></div>'
+          + '<div class="menu-qty"><button class="qbtn" onclick="addMenu(\''+m.key+'\',-1)">−</button><span class="qval">'+c+'</span><button class="qbtn" onclick="addMenu(\''+m.key+'\',1)">＋</button></div>'
+          + '</div>';
+      }).join('')
+    + '</div>';
+  document.getElementById('editControls').innerHTML = h;
+}
+window.pickStatus = function(k){
+  draft.status = k;
+  if(k === 'VACANT'){ draft.time=''; draft.party=0; draft.menu={}; document.getElementById('noteInput').value=''; }
+  renderControls();
+};
+window.pickTime  = function(t){ draft.time = t; renderControls(); };
+window.addParty  = function(d){ draft.party = Math.max(0, (draft.party||0)+d); renderControls(); };
+window.addMenu   = function(key,d){
+  draft.menu = draft.menu || {};
+  draft.menu[key] = Math.max(0, (draft.menu[key]||0)+d);
+  if(draft.menu[key] === 0) delete draft.menu[key];
+  renderControls();
+};
+function closeModal(){ document.getElementById('modalBg').style.display='none'; editingId=null; draft=null; }
+document.getElementById('saveBtn').onclick = function(){ if(window.saveEdit) window.saveEdit(); };
 document.getElementById('modalClose').onclick = closeModal;
 document.getElementById('modalBg').onclick = function(e){ if(e.target.id==='modalBg') closeModal(); };
 </script>
