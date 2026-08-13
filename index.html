@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>座席ボード（リアルタイム共有）</title>
+<style>
+  :root{--touch:44px}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans",sans-serif;background:#f1f5f9;color:#0f172a}
+  header{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+  .brand{font-weight:900;font-size:18px}
+  .metrics{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .pill{padding:6px 12px;border-radius:999px;font-weight:800;font-size:14px}
+  .p-free{background:#dcfce7;color:#166534}
+  .p-seat{background:#e0f2fe;color:#075985}
+  .p-on{background:#dcfce7;color:#166534}
+  .p-off{background:#fee2e2;color:#991b1b}
+  .reset{align-self:flex-start;padding:8px 12px;border:0;border-radius:10px;background:#e2e8f0;font-weight:800;cursor:pointer;min-height:var(--touch)}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:12px;max-width:820px;margin:0 auto}
+  @media(min-width:640px){.grid{grid-template-columns:repeat(3,1fr)}}
+  @media(min-width:900px){.grid{grid-template-columns:repeat(4,1fr)}}
+  .card{text-align:left;border:0;border-radius:14px;padding:14px;min-height:98px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.06);border-left:8px solid #cbd5e1;background:#fff;font-family:inherit}
+  .card-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .c-label{font-weight:900;font-size:16px}
+  .c-seats{font-size:12px;color:#64748b;font-weight:700}
+  .c-status{font-size:18px;font-weight:900}
+  .c-memo{margin-top:6px;font-size:13px;color:#334155;background:#f8fafc;border-radius:8px;padding:4px 8px;word-break:break-word}
+  .s-VACANT{border-left-color:#16a34a;background:linear-gradient(#f0fdf4,#fff)}
+  .s-RESERVED{border-left-color:#d97706;background:linear-gradient(#fffbeb,#fff)}
+  .s-SEATED{border-left-color:#dc2626;background:linear-gradient(#fef2f2,#fff)}
+  .s-PREP{border-left-color:#9333ea;background:linear-gradient(#faf5ff,#fff)}
+  .s-CLOSED{border-left-color:#4b5563;background:linear-gradient(#f8fafc,#fff);opacity:.75}
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px;z-index:50}
+  .modal{background:#fff;border-radius:16px;padding:18px;width:100%;max-width:440px}
+  .modal-title{font-weight:900;font-size:18px;margin-bottom:12px}
+  .status-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px}
+  .st-btn{border:2px solid #e2e8f0;background:#fff;border-radius:10px;padding:8px 2px;font-size:12px;font-weight:800;cursor:pointer;min-height:58px;line-height:1.3}
+  .st-btn.active{border-color:#0f172a;box-shadow:0 0 0 2px rgba(15,23,42,.15) inset}
+  .memo-label{display:block;font-size:12px;font-weight:800;color:#475569;margin-bottom:4px}
+  .memo-input{width:100%;min-height:var(--touch);padding:10px;border:2px solid #cbd5e1;border-radius:10px;font-size:16px}
+  .modal-actions{display:flex;gap:8px;margin-top:14px}
+  .btn{flex:1;min-height:var(--touch);border:0;border-radius:10px;font-weight:800;font-size:15px;cursor:pointer}
+  .btn-save{background:#2563eb;color:#fff}
+  .btn-close{background:#e2e8f0;color:#0f172a}
+  .setup-warn{margin:16px;padding:14px;border-radius:12px;background:#fef3c7;color:#92400e;font-weight:700;display:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand" id="brand">座席ボード</div>
+  <div class="metrics">
+    <span class="pill p-free" id="m-tables">空き —卓</span>
+    <span class="pill p-seat" id="m-seats">空き —席</span>
+    <span class="pill p-off" id="m-conn">接続中…</span>
+  </div>
+  <button class="reset" id="resetBtn">全席リセット</button>
+</header>
+
+<div class="setup-warn" id="setupWarn">
+  ⚠️ Firebaseの設定（databaseURL）がまだ入っていません。コード上部の firebaseConfig を貼り付けてください。
+</div>
+
+<main id="grid" class="grid"></main>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">テーブル</div>
+    <div class="status-row" id="statusRow"></div>
+    <label class="memo-label" for="memoInput">メモ（任意）　例: 18:00 田中様4名 / コースA</label>
+    <input class="memo-input" id="memoInput" type="text" maxlength="60" placeholder="予約時間・お名前・人数・メニューなど">
+    <div class="modal-actions">
+      <button class="btn btn-save" id="memoSave">メモを保存</button>
+      <button class="btn btn-close" id="modalClose">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+/* ============================================================
+   ① ここにFirebaseの設定を貼り付け（Firebaseコンソールで取得）
+   ※ databaseURL が必須です（Realtime Database）
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyDE_4P39KcJQjA5wb4HaxlQRjB-U7REVCo",
+  authDomain: "zenya-seats.firebaseapp.com",
+  databaseURL: "https://zenya-seats-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "zenya-seats",
+  storageBucket: "zenya-seats.firebasestorage.app",
+  messagingSenderId: "244862086918",
+  appId: "1:244862086918:web:ce55987841bf3518ff7887"
+};
+
+/* ============================================================
+   ② お店に合わせて編集（卓の数・名前・席数・状態の種類）
+   ============================================================ */
+const SETUP = {
+  boardName: '山しのぶ 座席ボード',
+  tables: [
+    {id:'T1', label:'テーブル1', seats:4},
+    {id:'T2', label:'テーブル2', seats:4},
+    {id:'T3', label:'テーブル3', seats:4},
+    {id:'T4', label:'テーブル4', seats:4},
+    {id:'T5', label:'テーブル5', seats:2},
+    {id:'T6', label:'テーブル6', seats:2},
+    {id:'T7', label:'座敷1',     seats:6},
+    {id:'T8', label:'座敷2',     seats:6}
+  ],
+  statuses: [
+    {key:'VACANT',   label:'空席',    emoji:'🟢'},
+    {key:'RESERVED', label:'予約',    emoji:'🟡'},
+    {key:'SEATED',   label:'使用中',  emoji:'🔴'},
+    {key:'PREP',     label:'準備中',  emoji:'🟣'},
+    {key:'CLOSED',   label:'クローズ',emoji:'⚫'}
+  ]
+};
+/* ==================== 編集はここまで ==================== */
+
+const statusMap = {};
+SETUP.statuses.forEach(s => statusMap[s.key] = s);
+
+let state = {};
+let editingId = null;
+
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// 設定未入力なら警告だけ出して停止
+if (!firebaseConfig.databaseURL || firebaseConfig.databaseURL === 'PASTE_HERE') {
+  document.getElementById('setupWarn').style.display = 'block';
+} else {
+  startApp();
+}
+
+function startApp(){
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const boardRef = db.ref('board/tables');
+
+  // 初回だけ初期データを作成（アトミック）
+  boardRef.transaction(cur => {
+    if (cur !== null) return cur;
+    const seed = {};
+    SETUP.tables.forEach(t => seed[t.id] = {label:t.label, seats:t.seats, status:'VACANT', memo:'', updatedAt: Date.now()});
+    return seed;
+  });
+
+  // リアルタイム購読（ここが即時反映の心臓部）
+  boardRef.on('value', snap => { state = snap.val() || {}; render(); });
+
+  // 接続状態インジケータ
+  db.ref('.info/connected').on('value', s => {
+    const on = s.val() === true;
+    const el = document.getElementById('m-conn');
+    el.textContent = on ? '🟢 リアルタイム接続' : '🔴 接続待ち…';
+    el.className = 'pill ' + (on ? 'p-on' : 'p-off');
+  });
+
+  // 状態変更
+  window.setStatus = function(key){
+    if(!editingId) return;
+    db.ref('board/tables/'+editingId).update({ status:key, updatedAt: firebase.database.ServerValue.TIMESTAMP });
+    document.querySelectorAll('#statusRow .st-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.querySelector('#statusRow .st-'+key);
+    if(btn) btn.classList.add('active');
+  };
+  // メモ保存
+  document.getElementById('memoSave').onclick = function(){
+    if(!editingId) return;
+    const memo = document.getElementById('memoInput').value.slice(0,60);
+    db.ref('board/tables/'+editingId).update({ memo:memo, updatedAt: firebase.database.ServerValue.TIMESTAMP });
+    closeModal();
+  };
+  // 全席リセット
+  document.getElementById('resetBtn').onclick = function(){
+    if(!confirm('全てのテーブルを「空席」に戻します。よろしいですか？')) return;
+    const upd = {};
+    SETUP.tables.forEach(t => { upd[t.id+'/status']='VACANT'; upd[t.id+'/memo']=''; upd[t.id+'/updatedAt']=Date.now(); });
+    boardRef.update(upd);
+  };
+}
+
+function render(){
+  document.getElementById('brand').textContent = SETUP.boardName;
+  const grid = document.getElementById('grid');
+  let freeTables = 0, freeSeats = 0;
+  grid.innerHTML = SETUP.tables.map(t => {
+    const d = state[t.id] || {status:'VACANT', memo:''};
+    const st = statusMap[d.status] || statusMap['VACANT'];
+    if (d.status === 'VACANT'){ freeTables++; freeSeats += (t.seats||0); }
+    return '<button class="card s-'+d.status+'" onclick="openEdit(\''+t.id+'\')">'
+      + '<div class="card-top"><span class="c-label">'+esc(t.label)+'</span><span class="c-seats">'+t.seats+'席</span></div>'
+      + '<div class="c-status">'+st.emoji+' '+st.label+'</div>'
+      + (d.memo ? '<div class="c-memo">'+esc(d.memo)+'</div>' : '')
+      + '</button>';
+  }).join('');
+  document.getElementById('m-tables').textContent = '空き '+freeTables+'卓';
+  document.getElementById('m-seats').textContent  = '空き '+freeSeats+'席';
+}
+
+window.openEdit = function(id){
+  editingId = id;
+  const t = SETUP.tables.find(x => x.id === id);
+  const d = state[id] || {};
+  document.getElementById('modalTitle').textContent = t ? t.label+'（'+t.seats+'席）' : id;
+  document.getElementById('memoInput').value = d.memo || '';
+  document.getElementById('statusRow').innerHTML = SETUP.statuses.map(s =>
+    '<button class="st-btn st-'+s.key+((d.status===s.key)?' active':'')+'" onclick="setStatus(\''+s.key+'\')">'+s.emoji+'<br>'+s.label+'</button>'
+  ).join('');
+  document.getElementById('modalBg').style.display = 'flex';
+};
+function closeModal(){ document.getElementById('modalBg').style.display='none'; editingId=null; }
+document.getElementById('modalClose').onclick = closeModal;
+document.getElementById('modalBg').onclick = function(e){ if(e.target.id==='modalBg') closeModal(); };
+</script>
+</body>
+</html>
