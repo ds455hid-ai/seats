@@ -32,7 +32,7 @@
   .card:active{transform:scale(.98)}
   .more{position:absolute;top:8px;right:8px;min-width:clamp(56px,7vw,74px);height:clamp(30px,3vw,38px);border:0;border-radius:9px;background:rgba(37,99,235,.1);color:#1e40af;font-size:clamp(12px,1.2vw,14px);font-weight:900;line-height:1;cursor:pointer;padding:0 8px;display:flex;align-items:center;justify-content:center;gap:4px}
   .more:active{background:rgba(37,99,235,.2)}
-  .card-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;padding-right:82px}
+  .card-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 6px;margin-bottom:8px;padding-right:66px}
   .c-label{font-weight:900;font-size:clamp(15px,1.6vw,22px)}
   .c-seats{font-size:clamp(11px,1.05vw,14px);color:#64748b;font-weight:700}
   .c-status{font-size:clamp(17px,1.9vw,26px);font-weight:900}
@@ -83,6 +83,10 @@
   .btn-close{background:#e2e8f0;color:#0f172a}
   .step-input{width:88px;height:50px;border:2px solid #cbd5e1;border-radius:12px;font-size:26px;font-weight:900;text-align:center;color:#0f172a;padding:0 4px}
   .reset.danger{background:#fee2e2;color:#991b1b}
+  .rolebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:6px 10px}
+  .rolelabel{font-size:clamp(12px,1.3vw,15px);font-weight:800;color:#475569}
+  .rolebtn{padding:8px 14px;border:2px solid #cbd5e1;background:#fff;border-radius:999px;font-weight:800;cursor:pointer;min-height:var(--touch);font-size:clamp(13px,1.3vw,16px);color:#334155}
+  .rolebtn.active{border-color:#2563eb;background:#2563eb;color:#fff}
   .setup-warn{margin:16px;padding:14px;border-radius:12px;background:#fef3c7;color:#92400e;font-weight:700;display:none}
 </style>
 </head>
@@ -94,6 +98,11 @@
     <span class="pill p-seat" id="m-seats">空き —席</span>
     <span class="pill p-guest" id="m-guests">来店予定 —名</span>
     <span class="pill p-off" id="m-conn">接続中…</span>
+  </div>
+  <div class="rolebar">
+    <span class="rolelabel">この端末:</span>
+    <button class="rolebtn" id="roleFloor">🍽 現場（→使用中）</button>
+    <button class="rolebtn" id="rolePhone">📞 電話予約（→予約）</button>
   </div>
   <button class="reset" id="resetBtn">全席リセット</button>
   <button class="reset danger" id="closeBtn">全席クローズ（L.O.終了）</button>
@@ -181,6 +190,8 @@ const menuByKey = {}; MENUS.forEach(m => menuByKey[m.key] = m);
 let state = {};
 let editingId = null;
 let draft = null;
+let role = 'floor';
+try { role = localStorage.getItem('seatRole') || 'floor'; } catch(e){}
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function yen(n){ return Number(n||0).toLocaleString('ja-JP'); }
@@ -229,7 +240,9 @@ function startApp(){
   // カード本体タップ＝空席⇄使用中（予約情報は使用中では保持、空席で消去）
   window.quickToggle = function(id){
     const cur = (state[id] && state[id].status) || 'VACANT';
-    const next = (cur === 'SEATED') ? 'VACANT' : 'SEATED';
+    let next;
+    if (role === 'phone'){ next = (cur === 'RESERVED') ? 'VACANT' : 'RESERVED'; }
+    else { next = (cur === 'SEATED') ? 'VACANT' : 'SEATED'; }
     const upd = { status:next, updatedAt: TS };
     if (next === 'VACANT'){ upd.time=''; upd.party=0; upd.menu={}; upd.note=''; }
     db.ref('board/tables/'+id).update(upd);
@@ -278,7 +291,9 @@ function render(){
     if (d.party) bits.push('👤'+d.party+'名');
     const resLine = bits.join('　');
     const menuStr = menuSummary(d.menu);
-    const hint = (d.status === 'SEATED') ? 'タップで空席に' : 'タップで使用中に';
+    let hint;
+    if (role === 'phone'){ hint = (d.status === 'RESERVED') ? 'タップで空席に' : 'タップで予約に'; }
+    else { hint = (d.status === 'SEATED') ? 'タップで空席に' : 'タップで使用中に'; }
     return '<div class="card s-'+d.status+'" onclick="quickToggle(\''+t.id+'\')">'
       + '<button class="more" onclick="event.stopPropagation();openEdit(\''+t.id+'\')" aria-label="予約・詳細を入力">✎ 入力</button>'
       + '<div class="card-top"><span class="c-label">'+esc(t.label)+'</span><span class="c-seats">'+t.seats+'席</span></div>'
@@ -349,6 +364,16 @@ function closeModal(){ document.getElementById('modalBg').style.display='none'; 
 document.getElementById('saveBtn').onclick = function(){ if(window.saveEdit) window.saveEdit(); };
 document.getElementById('modalClose').onclick = closeModal;
 document.getElementById('modalBg').onclick = function(e){ if(e.target.id==='modalBg') closeModal(); };
+
+function applyRoleUI(){
+  const f=document.getElementById('roleFloor'), p=document.getElementById('rolePhone');
+  if(f) f.classList.toggle('active', role==='floor');
+  if(p) p.classList.toggle('active', role==='phone');
+}
+window.setRole = function(r){ role=(r==='phone'?'phone':'floor'); try{localStorage.setItem('seatRole',role);}catch(e){} applyRoleUI(); render(); };
+document.getElementById('roleFloor').onclick = function(){ setRole('floor'); };
+document.getElementById('rolePhone').onclick = function(){ setRole('phone'); };
+applyRoleUI();
 </script>
 </body>
 </html>
