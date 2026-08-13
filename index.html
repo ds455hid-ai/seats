@@ -81,6 +81,8 @@
   .btn{flex:1;min-height:48px;border:0;border-radius:10px;font-weight:800;font-size:clamp(15px,1.5vw,18px);cursor:pointer}
   .btn-save{background:#2563eb;color:#fff}
   .btn-close{background:#e2e8f0;color:#0f172a}
+  .step-input{width:88px;height:50px;border:2px solid #cbd5e1;border-radius:12px;font-size:26px;font-weight:900;text-align:center;color:#0f172a;padding:0 4px}
+  .reset.danger{background:#fee2e2;color:#991b1b}
   .setup-warn{margin:16px;padding:14px;border-radius:12px;background:#fef3c7;color:#92400e;font-weight:700;display:none}
 </style>
 </head>
@@ -94,6 +96,7 @@
     <span class="pill p-off" id="m-conn">接続中…</span>
   </div>
   <button class="reset" id="resetBtn">全席リセット</button>
+  <button class="reset danger" id="closeBtn">全席クローズ（L.O.終了）</button>
 </header>
 
 <div class="setup-warn" id="setupWarn">
@@ -135,7 +138,7 @@ const firebaseConfig = {
    ② お店に合わせて編集（卓・営業時間・メニュー）
    ============================================================ */
 const SETUP = {
-  boardName: '山しのぶ 座席ボード',
+  boardName: '飲食店座席ボード',
   tables: [
     {id:'T1', label:'テーブル1', seats:4},
     {id:'T2', label:'テーブル2', seats:4},
@@ -154,9 +157,10 @@ const SETUP = {
     {key:'CLOSED',   label:'クローズ',emoji:'⚫'}
   ],
   // 予約時間の選択肢（営業時間・刻み）
-  business: { open:'18:00', close:'21:00', stepMin:30 },
+  business: { open:'18:00', close:'19:30', stepMin:15 },
   // メニュー（＋タップで人数分を入れられます）
   menus: [
+    {key:'m0', name:'席のみ',                       price:0,    short:'席のみ'},
     {key:'m1', name:'おまかせ御膳',                 price:7700, short:'御膳7700'},
     {key:'m2', name:'おまかせ御膳',                 price:5500, short:'御膳5500'},
     {key:'m3', name:'おまかせ御膳',                 price:4400, short:'御膳4400'},
@@ -233,6 +237,7 @@ function startApp(){
   // 保存（詳細モーダル）
   window.saveEdit = function(){
     if(!editingId) return;
+    const pEl = document.getElementById('partyInput'); if(pEl && window.setParty) window.setParty(pEl.value);
     const isVac = draft.status === 'VACANT';
     const note = isVac ? '' : document.getElementById('noteInput').value.slice(0,60);
     db.ref('board/tables/'+editingId).update({
@@ -249,6 +254,12 @@ function startApp(){
     if(!confirm('全てのテーブルを「空席」に戻します。よろしいですか？')) return;
     const upd = {};
     SETUP.tables.forEach(t => { upd[t.id+'/status']='VACANT'; upd[t.id+'/time']=''; upd[t.id+'/party']=0; upd[t.id+'/menu']={}; upd[t.id+'/note']=''; upd[t.id+'/updatedAt']=Date.now(); });
+    boardRef.update(upd);
+  };
+  document.getElementById('closeBtn').onclick = function(){
+    if(!confirm('全てのテーブルを「クローズ」にします。（ラストオーダー終了）よろしいですか？')) return;
+    const upd = {};
+    SETUP.tables.forEach(t => { upd[t.id+'/status']='CLOSED'; upd[t.id+'/time']=''; upd[t.id+'/party']=0; upd[t.id+'/menu']={}; upd[t.id+'/note']=''; upd[t.id+'/updatedAt']=Date.now(); });
     boardRef.update(upd);
   };
 }
@@ -299,20 +310,21 @@ function renderControls(){
   h += '<div class="sec">状態</div><div class="status-row">'
     + SETUP.statuses.map(s => '<button class="st-btn st-'+s.key+(draft.status===s.key?' active':'')+'" onclick="pickStatus(\''+s.key+'\')">'+s.emoji+'<br>'+s.label+'</button>').join('')
     + '</div>';
-  h += '<div class="sec">時間（'+SETUP.business.open+'〜'+SETUP.business.close+'）</div><div class="chip-row">'
+  h += '<div class="sec">時間（15分ごと・L.O. '+SETUP.business.close+'）</div><div class="chip-row">'
     + timeSlots().map(t => '<button class="chip'+(draft.time===t?' active':'')+'" onclick="pickTime(\''+t+'\')">'+t+'</button>').join('')
     + '<button class="chip'+(!draft.time?' active':'')+'" onclick="pickTime(\'\')">未定</button>'
     + '</div>';
-  h += '<div class="sec">人数</div><div class="stepper">'
+  h += '<div class="sec">人数（＋−ボタン、または直接入力）</div><div class="stepper">'
     + '<button class="step-btn" onclick="addParty(-1)">−</button>'
-    + '<span class="step-val">'+(draft.party||0)+'</span><span class="step-unit">名</span>'
+    + '<input class="step-input" id="partyInput" type="number" inputmode="numeric" min="0" max="99" value="'+(draft.party||0)+'" oninput="setParty(this.value)">'
+    + '<span class="step-unit">名</span>'
     + '<button class="step-btn" onclick="addParty(1)">＋</button>'
     + '</div>';
   h += '<div class="sec">メニュー（＋で人数分を追加）</div><div class="menu-list">'
     + MENUS.map(m => {
         const c = (draft.menu && draft.menu[m.key]) || 0;
         return '<div class="menu-item'+(c>0?' on':'')+'">'
-          + '<div class="menu-info"><span class="menu-name">'+esc(m.name)+'</span><span class="menu-price">'+yen(m.price)+'円</span></div>'
+          + '<div class="menu-info"><span class="menu-name">'+esc(m.name)+'</span><span class="menu-price">'+(m.price>0?yen(m.price)+'円':'お食事なし')+'</span></div>'
           + '<div class="menu-qty"><button class="qbtn" onclick="addMenu(\''+m.key+'\',-1)">−</button><span class="qval">'+c+'</span><button class="qbtn" onclick="addMenu(\''+m.key+'\',1)">＋</button></div>'
           + '</div>';
       }).join('')
@@ -325,7 +337,8 @@ window.pickStatus = function(k){
   renderControls();
 };
 window.pickTime  = function(t){ draft.time = t; renderControls(); };
-window.addParty  = function(d){ draft.party = Math.max(0, (draft.party||0)+d); renderControls(); };
+window.setParty  = function(v){ let n=parseInt(v,10); if(isNaN(n)||n<0) n=0; if(n>99) n=99; draft.party=n; };
+window.addParty  = function(d){ draft.party = Math.max(0, Math.min(99,(draft.party||0)+d)); const el=document.getElementById('partyInput'); if(el) el.value=draft.party; };
 window.addMenu   = function(key,d){
   draft.menu = draft.menu || {};
   draft.menu[key] = Math.max(0, (draft.menu[key]||0)+d);
