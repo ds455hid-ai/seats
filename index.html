@@ -133,8 +133,6 @@
     <div class="modal-title" id="modalTitle">テーブル</div>
     <div class="modal-sub" id="modalSub"></div>
     <div id="editControls"></div>
-    <label class="memo-label" for="noteInput">お名前・メモ（任意）</label>
-    <input class="memo-input" id="noteInput" type="text" maxlength="60" placeholder="例: 田中様 / アレルギー: えび">
     <button class="btn-clear" id="resetOneBtn">🧹 この卓をリセット（空席にして情報を消す）</button>
     <div class="modal-actions">
       <button class="btn btn-save" id="saveBtn">保存する</button>
@@ -309,7 +307,8 @@ function startApp(){
     const party = (isVac || seatOnly) ? 0 : (draft.party || 0);
     const time  = isVac ? '' : (draft.time || '');
     const menu  = isVac ? {} : (draft.menu || {});
-    const note  = isVac ? '' : document.getElementById('noteInput').value.slice(0,60);
+    const nEl = document.getElementById('noteInput'); if(nEl) draft.note = nEl.value;
+    const note  = isVac ? '' : (draft.note || '').slice(0,60);
     const oldGid = (state[lead] && state[lead].group) || '';
     const needed = (isVac || seatOnly) ? 1 : tablesNeeded(lead, party);
 
@@ -426,40 +425,32 @@ window.openEdit = function(id){
   const d = state[lead] || {};
   let st0 = d.status || 'VACANT';
   if(role === 'phone' && st0 === 'VACANT') st0 = 'RESERVED';   // 電話予約は最初から「予約」を選択
-  draft = { status: st0, time: d.time || '', party: Number(d.party)||0, menu: Object.assign({}, d.menu || {}) };
+  draft = { status: st0, note: d.note || '', time: d.time || '', party: Number(d.party)||0, menu: Object.assign({}, d.menu || {}) };
   document.getElementById('modalTitle').textContent = t ? (t.label+'（'+t.seats+'席）') : lead;
   const sub = document.getElementById('modalSub');
   if(d.group){ sub.textContent = 'グループ: ' + groupMembers(d.group).map(labelOf).join('・') + '（代表 '+labelOf(lead)+'）'; }
   else { sub.textContent = ''; }
-  document.getElementById('noteInput').value = d.note || '';
   renderControls();
   document.getElementById('modalBg').style.display = 'flex';
 };
 function renderControls(){
   let h = '';
   const seatOnly = !!(draft.menu && draft.menu['m0']);
-  // 状態（電話予約は予約を先頭に）
+  // 1) 状態（電話予約は予約を先頭に）
   let sts = SETUP.statuses;
   if(role === 'phone'){ sts = SETUP.statuses.filter(s=>s.key==='RESERVED').concat(SETUP.statuses.filter(s=>s.key!=='RESERVED')); }
   h += '<div class="sec">状態</div><div class="status-row">'
     + sts.map(s => '<button class="st-btn st-'+s.key+(draft.status===s.key?' active':'')+'" onclick="pickStatus(\''+s.key+'\')">'+s.emoji+'<br>'+s.label+'</button>').join('')
     + '</div>';
-  // 時間
+  // 2) 名前
+  h += '<div class="sec">お名前・メモ（任意）</div>'
+    + '<input class="memo-input" id="noteInput" type="text" maxlength="60" value="'+esc(draft.note||'')+'" oninput="setNote(this.value)" placeholder="例: 田中様 / アレルギー: えび">';
+  // 3) 時間
   h += '<div class="sec">時間（15分ごと・L.O. '+SETUP.business.close+'）</div><div class="chip-row">'
     + timeSlots().map(t => '<button class="chip'+(draft.time===t?' active':'')+'" onclick="pickTime(\''+t+'\')">'+t+'</button>').join('')
     + '<button class="chip'+(!draft.time?' active':'')+'" onclick="pickTime(\'\')">未定</button>'
     + '</div>';
-  // メニュー（タップで選択・席のみは他と排他）
-  h += '<div class="sec">メニュー（タップで選択）</div><div class="menu-list">'
-    + MENUS.map(m => {
-        const on = !!(draft.menu && draft.menu[m.key]);
-        return '<div class="menu-item'+(on?' on':'')+'" onclick="toggleMenu(\''+m.key+'\')">'
-          + '<div class="menu-info"><span class="menu-name">'+esc(m.name)+'</span><span class="menu-price">'+(m.price>0?yen(m.price)+'円':'お食事なし・人数指定なし')+'</span></div>'
-          + '<div class="menu-check">'+(on?'✓':'')+'</div>'
-          + '</div>';
-      }).join('')
-    + '</div>';
-  // 人数（席のみのときは不要）
+  // 4) 人数（席のみのときは不要）
   if(seatOnly){
     h += '<div class="sec">人数</div><div class="seatonly-note">🪑 席のみ（人数の指定は不要です）</div>';
   } else {
@@ -473,6 +464,22 @@ function renderControls(){
       + '<select class="party-select" id="partyInput" onchange="setParty(this.value)">'+popts+'</select>'
       + (needMsg ? '<div class="need-hint">'+needMsg+'</div>' : '');
   }
+  // 5) メニュー（席のみ=タップ選択のみ／料理=個数±）
+  h += '<div class="sec">メニュー（選んで個数を指定）</div><div class="menu-list">'
+    + MENUS.map(m => {
+        const c = (draft.menu && draft.menu[m.key]) || 0;
+        if(m.key === 'm0'){
+          return '<div class="menu-item'+(c>0?' on':'')+'" onclick="toggleMenu(\'m0\')">'
+            + '<div class="menu-info"><span class="menu-name">'+esc(m.name)+'</span><span class="menu-price">お食事なし・個数指定なし</span></div>'
+            + '<div class="menu-check">'+(c>0?'✓':'')+'</div>'
+            + '</div>';
+        }
+        return '<div class="menu-item'+(c>0?' on':'')+'">'
+          + '<div class="menu-info"><span class="menu-name">'+esc(m.name)+'</span><span class="menu-price">'+yen(m.price)+'円</span></div>'
+          + '<div class="menu-qty"><button class="qbtn" onclick="addMenu(\''+m.key+'\',-1)">−</button><span class="qval">'+c+'</span><button class="qbtn" onclick="addMenu(\''+m.key+'\',1)">＋</button></div>'
+          + '</div>';
+      }).join('')
+    + '</div>';
   document.getElementById('editControls').innerHTML = h;
 }
 window.pickStatus = function(k){ draft.status = k; renderControls(); };
@@ -480,10 +487,12 @@ window.pickTime  = function(t){ draft.time = t; renderControls(); };
 window.setParty  = function(v){ let n=parseInt(v,10); if(isNaN(n)||n<0) n=0; if(n>99) n=99; draft.party=n;
   const nh=document.querySelector('#editControls .need-hint'); /* 直接入力中は軽く更新 */ if(nh){ const need=tablesNeeded(editingId,n); nh.innerHTML = n>0 ? (need>1?'→ '+n+'名なので <b>'+need+'卓</b> を自動で確保します（保存時）':'→ 1卓でOK') : ''; } };
 window.addParty  = function(d){ draft.party = Math.max(0, Math.min(99,(draft.party||0)+d)); renderControls(); };
+window.setNote   = function(v){ draft.note = v; };
 window.addMenu   = function(key,d){
   draft.menu = draft.menu || {};
   draft.menu[key] = Math.max(0, (draft.menu[key]||0)+d);
   if(draft.menu[key] === 0) delete draft.menu[key];
+  if(d>0) delete draft.menu['m0'];   // 料理を足したら席のみを解除
   renderControls();
 };
 window.toggleMenu = function(key){
