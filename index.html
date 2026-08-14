@@ -78,6 +78,7 @@
   .step-btn:active{background:#cbd5e1}
   .step-input{width:88px;height:50px;border:2px solid #cbd5e1;border-radius:12px;font-size:26px;font-weight:900;text-align:center;color:#0f172a;padding:0 4px}
   .step-unit{font-size:17px;font-weight:800;color:#475569}
+  .party-select{width:100%;min-height:52px;padding:10px 14px;border:2px solid #cbd5e1;border-radius:12px;font-size:20px;font-weight:900;color:#0f172a;background:#fff}
   .need-hint{margin-top:8px;font-size:clamp(12px,1.2vw,14px);font-weight:800;color:#7c3aed}
   .menu-list{display:flex;flex-direction:column;gap:8px}
   .menu-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:2px solid #eef2f7;border-radius:12px;background:#fff}
@@ -429,8 +430,10 @@ window.openEdit = function(id){
 };
 function renderControls(){
   let h = '';
+  let sts = SETUP.statuses;
+  if(role === 'phone'){ sts = SETUP.statuses.filter(s=>s.key==='RESERVED').concat(SETUP.statuses.filter(s=>s.key!=='RESERVED')); }
   h += '<div class="sec">状態</div><div class="status-row">'
-    + SETUP.statuses.map(s => '<button class="st-btn st-'+s.key+(draft.status===s.key?' active':'')+'" onclick="pickStatus(\''+s.key+'\')">'+s.emoji+'<br>'+s.label+'</button>').join('')
+    + sts.map(s => '<button class="st-btn st-'+s.key+(draft.status===s.key?' active':'')+'" onclick="pickStatus(\''+s.key+'\')">'+s.emoji+'<br>'+s.label+'</button>').join('')
     + '</div>';
   h += '<div class="sec">時間（15分ごと・L.O. '+SETUP.business.close+'）</div><div class="chip-row">'
     + timeSlots().map(t => '<button class="chip'+(draft.time===t?' active':'')+'" onclick="pickTime(\''+t+'\')">'+t+'</button>').join('')
@@ -440,12 +443,10 @@ function renderControls(){
   const needMsg = (draft.party>0)
     ? (need>1 ? '→ '+draft.party+'名なので <b>'+need+'卓</b> を自動で確保します（保存時）' : '→ 1卓でOK')
     : '';
-  h += '<div class="sec">人数（＋−ボタン、または直接入力）</div><div class="stepper">'
-    + '<button class="step-btn" onclick="addParty(-1)">−</button>'
-    + '<input class="step-input" id="partyInput" type="number" inputmode="numeric" min="0" max="99" value="'+(draft.party||0)+'" oninput="setParty(this.value)">'
-    + '<span class="step-unit">名</span>'
-    + '<button class="step-btn" onclick="addParty(1)">＋</button>'
-    + '</div>'
+  let popts = '<option value="0"'+(draft.party===0?' selected':'')+'>— 未設定 —</option>';
+  for(let n=1;n<=28;n++){ popts += '<option value="'+n+'"'+(draft.party===n?' selected':'')+'>'+n+'名</option>'; }
+  h += '<div class="sec">人数（選択）</div>'
+    + '<select class="party-select" id="partyInput" onchange="setParty(this.value)">'+popts+'</select>'
     + (needMsg ? '<div class="need-hint">'+needMsg+'</div>' : '');
   h += '<div class="sec">メニュー（＋で人数分を追加）</div><div class="menu-list">'
     + MENUS.map(m => {
