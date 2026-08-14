@@ -95,6 +95,15 @@
   .qbtn:active{background:#cbd5e1}
   .qval{min-width:24px;text-align:center;font-size:19px;font-weight:900}
   .menu-qty-select{flex:none;min-width:82px;min-height:46px;padding:6px 8px;border:2px solid #cbd5e1;border-radius:10px;font-size:17px;font-weight:800;color:#0f172a;background:#fff}
+  .area-head{grid-column:1/-1;font-weight:900;font-size:clamp(14px,1.7vw,19px);color:#334155;padding:8px 4px 2px;border-bottom:2px solid #e2e8f0;margin-top:4px}
+  .area-head:first-child{margin-top:0}
+  .movebar{position:sticky;top:0;z-index:6;background:#1e293b;color:#fff;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-weight:800;font-size:clamp(13px,1.4vw,16px)}
+  .mb-msg{flex:1;min-width:0}
+  .mb-cancel{padding:8px 14px;border:0;border-radius:8px;background:#f1f5f9;color:#0f172a;font-weight:800;cursor:pointer;min-height:40px}
+  .ops{display:flex;flex-direction:column;gap:8px}
+  .op-btn{width:100%;min-height:48px;border:2px solid #cbd5e1;background:#fff;color:#0f172a;border-radius:10px;font-weight:800;font-size:clamp(13px,1.4vw,16px);cursor:pointer}
+  .op-btn:active{background:#f1f5f9}
+  .op-detach{border-color:#fed7aa;background:#fff7ed;color:#9a3412}
   .memo-label{display:block;font-size:clamp(12px,1.2vw,14px);font-weight:800;color:#475569;margin:16px 0 6px}
   .memo-input{width:100%;min-height:var(--touch);padding:10px;border:2px solid #cbd5e1;border-radius:10px;font-size:16px}
   .btn-clear{width:100%;min-height:46px;border:2px solid #fecdd3;background:#fff1f2;color:#be123c;border-radius:10px;font-weight:800;font-size:clamp(13px,1.4vw,16px);cursor:pointer;margin-top:14px}
@@ -122,6 +131,8 @@
   <button class="reset" id="resetBtn">全席リセット</button>
   <button class="reset danger" id="closeBtn">全席クローズ（L.O.終了）</button>
 </header>
+
+<div id="moveBar" class="movebar" style="display:none"></div>
 
 <div class="setup-warn" id="setupWarn">
   ⚠️ Firebaseの設定（databaseURL）がまだ入っていません。コード上部の firebaseConfig を貼り付けてください。
@@ -164,14 +175,14 @@ const firebaseConfig = {
 const SETUP = {
   boardName: '飲食店座席ボード',
   tables: [
-    {id:'T1', label:'テーブル1', seats:4},
-    {id:'T2', label:'テーブル2', seats:4},
-    {id:'T3', label:'テーブル3', seats:4},
-    {id:'T4', label:'テーブル4', seats:4},
-    {id:'T5', label:'テーブル5', seats:4},
-    {id:'T6', label:'テーブル6', seats:4},
-    {id:'T7', label:'テーブル7', seats:4},
-    {id:'T8', label:'テーブル8', seats:4}
+    {id:'T1', label:'テーブル1', seats:4, area:'厨房側'},
+    {id:'T2', label:'テーブル2', seats:4, area:'厨房側'},
+    {id:'T3', label:'テーブル3', seats:4, area:'厨房側'},
+    {id:'T4', label:'テーブル4', seats:4, area:'厨房側'},
+    {id:'T5', label:'テーブル5', seats:4, area:'窓際'},
+    {id:'T6', label:'テーブル6', seats:4, area:'窓際'},
+    {id:'T7', label:'テーブル7', seats:4, area:'窓際'},
+    {id:'T8', label:'テーブル8', seats:4, area:'窓際'}
   ],
   statuses: [
     {key:'VACANT',   label:'空席',    emoji:'🟢'},
@@ -212,6 +223,7 @@ let editingId = null;
 let draft = null;
 let role = 'floor';
 try { role = localStorage.getItem('seatRole') || 'floor'; } catch(e){}
+let moveSrc = null; // {type:'move'|'join', id}
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function yen(n){ return Number(n||0).toLocaleString('ja-JP'); }
@@ -238,6 +250,7 @@ function clearPayload(id){
   p[id+'/group']=''; p[id+'/gsize']=0; p[id+'/glead']=''; p[id+'/updatedAt']=Date.now();
   return p;
 }
+function contentOf(id){ const d=state[id]||{}; return {status:d.status||'VACANT', time:d.time||'', party:Number(d.party)||0, menu:(d.menu&&Object.keys(d.menu).length?d.menu:{}), note:d.note||''}; }
 // リード＋近くの空き卓を needed 卓ぶん集める（足りなければ null）
 function collectMembers(lead, needed, oldGid){
   const ids = SETUP.tables.map(t=>t.id);
@@ -287,6 +300,20 @@ function startApp(){
 
   // カード本体タップ＝状態のみ変更（グループはまとめて切替。情報は消さない）
   window.quickToggle = function(id){
+    if(moveSrc){
+      const src = moveSrc.id, type = moveSrc.type;
+      if(id === src){ moveSrc = null; updateMoveBar(); return; }
+      if(type === 'join'){
+        if(state[id] && state[id].status && state[id].status !== 'VACANT' && !(state[id].group)){
+          if(!confirm('「'+labelOf(id)+'」の予約内容は消えて、グループに加わります。よろしいですか？')) return;
+        }
+        window.doJoin(src, id);
+      } else {
+        window.doMoveSwap(src, id);
+      }
+      moveSrc = null; updateMoveBar();
+      return;
+    }
     const cur = (state[id] && state[id].status) || 'VACANT';
     let next;
     if (role === 'phone'){ next = (cur === 'RESERVED') ? 'VACANT' : 'RESERVED'; }
@@ -354,6 +381,45 @@ function startApp(){
     const upd = {}; ids.forEach(mid => Object.assign(upd, clearPayload(mid)));
     boardRef.update(upd);
   };
+  // 移動・入替（グループでない単独卓のみ。空席なら移動／予約済なら入替）
+  window.doMoveSwap = function(src, dest){
+    if((state[src] && state[src].group) || (state[dest] && state[dest].group)){
+      alert('グループになっている卓は、そのままでは移動できません。先に「グループを離す」で解除してください。');
+      return;
+    }
+    const a = contentOf(src), b = contentOf(dest);
+    const upd = {};
+    const put = (id,c)=>{ upd[id+'/status']=c.status; upd[id+'/time']=c.time; upd[id+'/party']=c.party; upd[id+'/menu']=c.menu||{}; upd[id+'/note']=c.note; upd[id+'/group']=''; upd[id+'/gsize']=0; upd[id+'/glead']=''; upd[id+'/updatedAt']=Date.now(); };
+    put(src, b); put(dest, a);
+    boardRef.update(upd);
+  };
+  // くっつける（単独卓どうしを2卓グループに。srcが代表・内容保持、destはフォロワー）
+  window.doJoin = function(a, b){
+    if(a === b) return;
+    if((state[a] && state[a].group) || (state[b] && state[b].group)){
+      alert('すでにグループになっている卓が含まれています。先に「離す」で解除してください。');
+      return;
+    }
+    const lead = contentOf(a);
+    const party = lead.party > 0 ? lead.party : 0;
+    const gid = 'g' + Date.now().toString(36) + Math.floor(Math.random()*900+100);
+    const upd = {};
+    upd[a+'/group']=gid; upd[a+'/glead']=a; upd[a+'/gsize']=party; upd[a+'/party']=party; upd[a+'/updatedAt']=Date.now();
+    upd[b+'/status']=lead.status || 'RESERVED'; upd[b+'/time']=lead.time; upd[b+'/party']=0; upd[b+'/menu']={}; upd[b+'/note']=''; upd[b+'/group']=gid; upd[b+'/glead']=a; upd[b+'/gsize']=party; upd[b+'/updatedAt']=Date.now();
+    boardRef.update(upd);
+  };
+  // 離す（グループ解除）：代表卓は内容を保持、他は空席に
+  window.dissolveGroup = function(gid){
+    const members = groupMembers(gid);
+    if(members.length === 0) return;
+    const lead = members.find(id => Number(state[id] && state[id].party) > 0) || members[0];
+    const upd = {};
+    members.forEach(mid => {
+      if(mid === lead){ upd[mid+'/group']=''; upd[mid+'/gsize']=0; upd[mid+'/glead']=''; upd[mid+'/updatedAt']=Date.now(); }
+      else { Object.assign(upd, clearPayload(mid)); }
+    });
+    boardRef.update(upd);
+  };
 
   document.getElementById('resetBtn').onclick = function(){
     if(!confirm('全てのテーブルを「空席」に戻し、予約情報を消します。よろしいですか？')) return;
@@ -373,6 +439,7 @@ function render(){
   document.getElementById('brand').textContent = SETUP.boardName;
   const grid = document.getElementById('grid');
   let freeTables = 0, freeSeats = 0, guests = 0;
+  let lastArea = null;
   grid.innerHTML = SETUP.tables.map(t => {
     const d = state[t.id] || {status:'VACANT'};
     const st = statusMap[d.status] || statusMap['VACANT'];
@@ -396,10 +463,15 @@ function render(){
         + '</div>';
     }
     let hint;
-    if (role === 'phone'){ hint = (d.status === 'RESERVED') ? 'タップで空席に' : 'タップで予約に'; }
+    if(moveSrc){
+      if(t.id === moveSrc.id) hint = '★移動元（タップで解除）';
+      else hint = (moveSrc.type === 'join') ? 'タップでくっつける' : 'タップで移動先に';
+    } else if (role === 'phone'){ hint = (d.status === 'RESERVED') ? 'タップで空席に' : 'タップで予約に'; }
     else { hint = (d.status === 'SEATED') ? 'タップで空席に' : 'タップで使用中に'; }
     const hasInfo = (d.status !== 'VACANT') || !!d.time || pnum>0 || (d.menu && Object.keys(d.menu).length>0) || !!d.note || !!gid;
-    return '<div class="card s-'+d.status+'" onclick="quickToggle(\''+t.id+'\')">'
+    let head = '';
+    if(t.area && t.area !== lastArea){ head = '<div class="area-head">'+esc(t.area)+'</div>'; lastArea = t.area; }
+    return head + '<div class="card s-'+d.status+'" onclick="quickToggle(\''+t.id+'\')">'
       + '<button class="more" onclick="event.stopPropagation();openEdit(\''+t.id+'\')" aria-label="予約・詳細を入力">✎ 入力</button>'
       + '<div class="card-top"><span class="c-label">'+esc(t.label)+'</span><span class="c-seats">'+t.seats+'席</span></div>'
       + '<div class="c-status">'+st.emoji+' '+st.label+'</div>'
@@ -415,7 +487,23 @@ function render(){
   document.getElementById('m-tables').textContent = '空き '+freeTables+'卓';
   document.getElementById('m-seats').textContent  = '空き '+freeSeats+'席';
   document.getElementById('m-guests').textContent = '来店予定 '+guests+'名';
+  updateMoveBar();
 }
+
+/* ---- 移動バー（移動/くっつける モード表示） ---- */
+function updateMoveBar(){
+  const bar = document.getElementById('moveBar');
+  if(!bar) return;
+  if(!moveSrc){ bar.style.display='none'; bar.innerHTML=''; return; }
+  const verb = (moveSrc.type === 'join') ? 'くっつける相手' : '移動先';
+  const hint = (moveSrc.type === 'join') ? '（相手を選ぶとグループになります）' : '（空席=移動／予約済=入替）';
+  bar.style.display='flex';
+  bar.innerHTML = '<span class="mb-msg">🔀 「'+esc(labelOf(moveSrc.id))+'」の'+verb+'のテーブルをタップ '+hint+'</span>'
+    + '<button class="mb-cancel" onclick="cancelMove()">キャンセル</button>';
+}
+window.cancelMove = function(){ moveSrc = null; updateMoveBar(); };
+window.startMove = function(type){ if(!editingId) return; moveSrc = { type:type, id:editingId }; closeModal(); updateMoveBar(); };
+window.detachGroup = function(){ if(!editingId) return; const g = state[editingId] && state[editingId].group; if(!g) return; if(!confirm('このグループを離して（解除して）、代表以外の卓を空席にします。よろしいですか？')) return; if(window.dissolveGroup) window.dissolveGroup(g); closeModal(); };
 
 /* ---- 詳細モーダル（タップだけで入力） ---- */
 window.openEdit = function(id){
@@ -483,6 +571,17 @@ function renderControls(){
           + '</div>';
       }).join('')
     + '</div>';
+  // 6) 席の操作（移動・くっつける・離す）
+  const cur = state[editingId] || {};
+  const inGroup = !!cur.group;
+  const hasContent = !!(cur.status && cur.status !== 'VACANT');
+  if(hasContent){
+    h += '<div class="sec">席の操作（現場での配置換え）</div><div class="ops">';
+    h += '<button class="op-btn" onclick="startMove(\'move\')">🔀 別のテーブルへ移動・入替</button>';
+    if(inGroup){ h += '<button class="op-btn op-detach" onclick="detachGroup()">✂️ グループを離す（1卓ずつに戻す）</button>'; }
+    else { h += '<button class="op-btn" onclick="startMove(\'join\')">🔗 別のテーブルとくっつける</button>'; }
+    h += '</div>';
+  }
   document.getElementById('editControls').innerHTML = h;
 }
 window.pickStatus = function(k){ draft.status = k; renderControls(); };
