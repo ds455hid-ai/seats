@@ -20,13 +20,19 @@
   .p-on{background:#dcfce7;color:#166534}
   .p-off{background:#fee2e2;color:#991b1b}
   .reset{align-self:flex-start;padding:8px clamp(12px,1.3vw,18px);border:0;border-radius:10px;background:#e2e8f0;font-weight:800;cursor:pointer;min-height:var(--touch);font-size:clamp(13px,1.3vw,16px)}
+  .reset.danger{background:#fee2e2;color:#991b1b}
+  .rolebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:6px 10px}
+  .rolelabel{font-size:clamp(12px,1.3vw,15px);font-weight:800;color:#475569}
+  .rolebtn{padding:8px 14px;border:2px solid #cbd5e1;background:#fff;border-radius:999px;font-weight:800;cursor:pointer;min-height:var(--touch);font-size:clamp(13px,1.3vw,16px);color:#334155}
+  .rolebtn.active{border-color:#2563eb;background:#2563eb;color:#fff}
+  .setup-warn{margin:16px;padding:14px;border-radius:12px;background:#fef3c7;color:#92400e;font-weight:700;display:none}
+
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(8px,1.3vw,16px);padding:clamp(10px,1.6vw,22px);max-width:var(--maxw);margin:0 auto}
+  @media(min-width:600px){.grid{grid-template-columns:repeat(4,1fr)}}
   @media(min-width:768px){
     header{flex-direction:row;align-items:center}
     .brand{margin-right:auto}
   }
-
-  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(8px,1.3vw,16px);padding:clamp(10px,1.6vw,22px);max-width:var(--maxw);margin:0 auto}
-  @media(min-width:600px){.grid{grid-template-columns:repeat(4,1fr)}}
 
   .card{position:relative;display:flex;flex-direction:column;text-align:left;border:0;border-radius:clamp(12px,1.2vw,18px);padding:clamp(12px,1.3vw,20px);min-height:clamp(112px,15vh,180px);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.06);border-left:8px solid #cbd5e1;background:#fff;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:transform .08s ease,box-shadow .12s ease}
   .card:active{transform:scale(.98)}
@@ -36,11 +42,14 @@
   .c-label{font-weight:900;font-size:clamp(15px,1.6vw,22px)}
   .c-seats{font-size:clamp(11px,1.05vw,14px);color:#64748b;font-weight:700}
   .c-status{font-size:clamp(17px,1.9vw,26px);font-weight:900}
+  .gbadge{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px;padding:4px 10px;border-radius:999px;font-weight:800;font-size:clamp(11px,1.15vw,14px);line-height:1.3}
+  .gdot{width:12px;height:12px;border-radius:50%;flex:none}
+  .gmem{font-weight:700;opacity:.9;font-size:.92em}
   .c-res{margin-top:7px;font-size:clamp(13px,1.35vw,17px);font-weight:800;color:#0f172a}
   .c-menu{margin-top:5px;font-size:clamp(12px,1.15vw,14px);color:#334155;background:#f8fafc;border-radius:8px;padding:5px 9px;word-break:break-word}
   .c-note{margin-top:5px;font-size:clamp(11px,1.1vw,13px);color:#64748b;word-break:break-word}
-  .c-hint{font-size:clamp(10px,1vw,13px);color:#94a3b8;font-weight:800}
   .card-foot{margin-top:auto;padding-top:8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .c-hint{font-size:clamp(10px,1vw,13px);color:#94a3b8;font-weight:800}
   .reset-one{flex:none;border:1px solid #fecdd3;background:#fff1f2;color:#be123c;border-radius:8px;font-weight:800;font-size:clamp(11px,1.1vw,13px);padding:6px 10px;cursor:pointer;min-height:32px;white-space:nowrap}
   .reset-one:active{background:#ffe4e6}
   .s-VACANT{border-left-color:#16a34a;background:linear-gradient(#f0fdf4,#fff)}
@@ -55,7 +64,8 @@
 
   .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:flex-start;justify-content:center;padding:16px;z-index:50;overflow-y:auto}
   .modal{background:#fff;border-radius:16px;padding:clamp(14px,2vw,24px);width:100%;max-width:min(520px, calc(100vw - 28px));margin:auto;overflow-x:hidden}
-  .modal-title{font-weight:900;font-size:clamp(18px,2vw,24px);margin-bottom:6px}
+  .modal-title{font-weight:900;font-size:clamp(18px,2vw,24px);margin-bottom:2px}
+  .modal-sub{font-size:clamp(12px,1.2vw,14px);color:#475569;font-weight:700;margin-bottom:6px;min-height:1px}
   .sec{font-size:clamp(12px,1.2vw,14px);font-weight:800;color:#475569;margin:16px 0 7px}
   .status-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(4px,.8vw,10px)}
   .st-btn{border:2px solid #e2e8f0;background:#fff;border-radius:10px;padding:8px 2px;font-size:clamp(12px,1.3vw,15px);font-weight:800;cursor:pointer;min-height:clamp(56px,8vh,80px);line-height:1.3;color:#0f172a}
@@ -66,8 +76,9 @@
   .stepper{display:flex;align-items:center;gap:16px}
   .step-btn{width:56px;height:50px;border:0;border-radius:12px;background:#e2e8f0;font-size:28px;font-weight:900;cursor:pointer;line-height:1;color:#0f172a}
   .step-btn:active{background:#cbd5e1}
-  .step-val{font-size:30px;font-weight:900;min-width:44px;text-align:center}
+  .step-input{width:88px;height:50px;border:2px solid #cbd5e1;border-radius:12px;font-size:26px;font-weight:900;text-align:center;color:#0f172a;padding:0 4px}
   .step-unit{font-size:17px;font-weight:800;color:#475569}
+  .need-hint{margin-top:8px;font-size:clamp(12px,1.2vw,14px);font-weight:800;color:#7c3aed}
   .menu-list{display:flex;flex-direction:column;gap:8px}
   .menu-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:2px solid #eef2f7;border-radius:12px;background:#fff}
   .menu-item.on{border-color:#16a34a;background:#f0fdf4}
@@ -80,19 +91,12 @@
   .qval{min-width:24px;text-align:center;font-size:19px;font-weight:900}
   .memo-label{display:block;font-size:clamp(12px,1.2vw,14px);font-weight:800;color:#475569;margin:16px 0 6px}
   .memo-input{width:100%;min-height:var(--touch);padding:10px;border:2px solid #cbd5e1;border-radius:10px;font-size:16px}
-  .modal-actions{display:flex;gap:10px;margin-top:18px;position:sticky;bottom:0;background:#fff;padding-top:6px}
+  .btn-clear{width:100%;min-height:46px;border:2px solid #fecdd3;background:#fff1f2;color:#be123c;border-radius:10px;font-weight:800;font-size:clamp(13px,1.4vw,16px);cursor:pointer;margin-top:14px}
+  .btn-clear:active{background:#ffe4e6}
+  .modal-actions{display:flex;gap:10px;margin-top:14px;position:sticky;bottom:0;background:#fff;padding-top:6px}
   .btn{flex:1;min-height:48px;border:0;border-radius:10px;font-weight:800;font-size:clamp(15px,1.5vw,18px);cursor:pointer}
   .btn-save{background:#2563eb;color:#fff}
   .btn-close{background:#e2e8f0;color:#0f172a}
-  .btn-clear{width:100%;min-height:46px;border:2px solid #fecdd3;background:#fff1f2;color:#be123c;border-radius:10px;font-weight:800;font-size:clamp(13px,1.4vw,16px);cursor:pointer;margin-top:14px}
-  .btn-clear:active{background:#ffe4e6}
-  .step-input{width:88px;height:50px;border:2px solid #cbd5e1;border-radius:12px;font-size:26px;font-weight:900;text-align:center;color:#0f172a;padding:0 4px}
-  .reset.danger{background:#fee2e2;color:#991b1b}
-  .rolebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:6px 10px}
-  .rolelabel{font-size:clamp(12px,1.3vw,15px);font-weight:800;color:#475569}
-  .rolebtn{padding:8px 14px;border:2px solid #cbd5e1;background:#fff;border-radius:999px;font-weight:800;cursor:pointer;min-height:var(--touch);font-size:clamp(13px,1.3vw,16px);color:#334155}
-  .rolebtn.active{border-color:#2563eb;background:#2563eb;color:#fff}
-  .setup-warn{margin:16px;padding:14px;border-radius:12px;background:#fef3c7;color:#92400e;font-weight:700;display:none}
 </style>
 </head>
 <body>
@@ -122,6 +126,7 @@
 <div class="modal-bg" id="modalBg">
   <div class="modal">
     <div class="modal-title" id="modalTitle">テーブル</div>
+    <div class="modal-sub" id="modalSub"></div>
     <div id="editControls"></div>
     <label class="memo-label" for="noteInput">お名前・メモ（任意）</label>
     <input class="memo-input" id="noteInput" type="text" maxlength="60" placeholder="例: 田中様 / アレルギー: えび">
@@ -171,9 +176,7 @@ const SETUP = {
     {key:'PREP',     label:'準備中',  emoji:'🟣'},
     {key:'CLOSED',   label:'クローズ',emoji:'⚫'}
   ],
-  // 予約時間の選択肢（営業時間・刻み）
   business: { open:'18:00', close:'19:30', stepMin:15 },
-  // メニュー（＋タップで人数分を入れられます）
   menus: [
     {key:'m0', name:'席のみ',                       price:0,    short:'席のみ'},
     {key:'m1', name:'おまかせ御膳',                 price:7700, short:'御膳7700'},
@@ -191,7 +194,14 @@ const SETUP = {
 
 const statusMap = {}; SETUP.statuses.forEach(s => statusMap[s.key] = s);
 const MENUS = SETUP.menus;
-const menuByKey = {}; MENUS.forEach(m => menuByKey[m.key] = m);
+const GROUP_COLORS = [
+  {bg:'#ede9fe',fg:'#5b21b6',dot:'#7c3aed'},
+  {bg:'#ccfbf1',fg:'#0f766e',dot:'#14b8a6'},
+  {bg:'#ffedd5',fg:'#9a3412',dot:'#f97316'},
+  {bg:'#fce7f3',fg:'#9d174d',dot:'#ec4899'},
+  {bg:'#dbeafe',fg:'#1e40af',dot:'#2563eb'},
+  {bg:'#fef9c3',fg:'#854d0e',dot:'#ca8a04'}
+];
 
 let state = {};
 let editingId = null;
@@ -201,6 +211,11 @@ try { role = localStorage.getItem('seatRole') || 'floor'; } catch(e){}
 
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function yen(n){ return Number(n||0).toLocaleString('ja-JP'); }
+function seatsOf(id){ const t = SETUP.tables.find(x=>x.id===id); return t ? (t.seats||4) : 4; }
+function tablesNeeded(id, party){ const s = seatsOf(id)||4; return Math.max(1, Math.ceil((Number(party)||0)/s)); }
+function labelOf(id){ const t = SETUP.tables.find(x=>x.id===id); return t ? t.label : id; }
+function groupStyle(gid){ let h=0; for(let i=0;i<gid.length;i++){ h=(h*31 + gid.charCodeAt(i))>>>0; } return GROUP_COLORS[h % GROUP_COLORS.length]; }
+function groupMembers(gid){ return SETUP.tables.map(t=>t.id).filter(id => ((state[id]&&state[id].group)||'') === gid); }
 function timeSlots(){
   const b = SETUP.business;
   const [oh,om] = b.open.split(':').map(Number);
@@ -212,6 +227,29 @@ function timeSlots(){
 function menuSummary(menu){
   if(!menu) return '';
   return MENUS.filter(m => (menu[m.key]||0) > 0).map(m => m.short+'×'+menu[m.key]).join(' / ');
+}
+function clearPayload(id){
+  const p = {};
+  p[id+'/status']='VACANT'; p[id+'/time']=''; p[id+'/party']=0; p[id+'/menu']={}; p[id+'/note']='';
+  p[id+'/group']=''; p[id+'/gsize']=0; p[id+'/glead']=''; p[id+'/updatedAt']=Date.now();
+  return p;
+}
+// リード＋近くの空き卓を needed 卓ぶん集める（足りなければ null）
+function collectMembers(lead, needed, oldGid){
+  const ids = SETUP.tables.map(t=>t.id);
+  const li = ids.indexOf(lead);
+  const chosen = [lead];
+  const isAvail = (id) => {
+    const d = state[id] || {};
+    const g = d.group || '';
+    if(g && g === oldGid) return true;         // 自分の旧グループは再利用OK
+    return (!g) && (!d.status || d.status === 'VACANT'); // 空席で無所属なら確保OK
+  };
+  for(let k=1; k<ids.length && chosen.length<needed; k++){
+    const id = ids[(li+k) % ids.length];
+    if(isAvail(id)) chosen.push(id);
+  }
+  return (chosen.length >= needed) ? chosen : null;
 }
 
 /* ---- 設定チェック ---- */
@@ -230,7 +268,7 @@ function startApp(){
   boardRef.transaction(cur => {
     if (cur !== null) return cur;
     const seed = {};
-    SETUP.tables.forEach(t => seed[t.id] = {label:t.label, seats:t.seats, status:'VACANT', time:'', party:0, note:'', updatedAt: Date.now()});
+    SETUP.tables.forEach(t => seed[t.id] = {label:t.label, seats:t.seats, status:'VACANT', time:'', party:0, note:'', group:'', gsize:0, glead:'', updatedAt: Date.now()});
     return seed;
   });
 
@@ -243,48 +281,78 @@ function startApp(){
     el.className = 'pill ' + (on ? 'p-on' : 'p-off');
   });
 
-  // カード本体タップ＝空席⇄使用中（予約情報は使用中では保持、空席で消去）
+  // カード本体タップ＝状態のみ変更（グループはまとめて切替。情報は消さない）
   window.quickToggle = function(id){
     const cur = (state[id] && state[id].status) || 'VACANT';
     let next;
     if (role === 'phone'){ next = (cur === 'RESERVED') ? 'VACANT' : 'RESERVED'; }
     else { next = (cur === 'SEATED') ? 'VACANT' : 'SEATED'; }
-    // タップは状態のみ変更（時間・人数・メニュー等は消さない）
-    db.ref('board/tables/'+id).update({ status:next, updatedAt: TS });
+    const gid = (state[id] && state[id].group) || '';
+    const ids = gid ? groupMembers(gid) : [id];
+    const upd = {};
+    ids.forEach(mid => { upd[mid+'/status']=next; upd[mid+'/updatedAt']=Date.now(); });
+    boardRef.update(upd);
   };
-  // 1卓だけリセット（空席にして情報を消去）
-  window.resetOne = function(){
-    if(!editingId) return;
-    if(!confirm('この卓を空席にして、予約情報（時間・人数・メニュー・メモ）を消します。よろしいですか？')) return;
-    db.ref('board/tables/'+editingId).update({ status:'VACANT', time:'', party:0, menu:{}, note:'', updatedAt: TS });
-    closeModal();
-  };
-  // カードの「🧹リセット」ボタン（表から直接）
-  window.resetCard = function(id){
-    if(!id) return;
-    if(!confirm('この卓を空席にして、予約情報（時間・人数・メニュー・メモ）を消します。よろしいですか？')) return;
-    db.ref('board/tables/'+id).update({ status:'VACANT', time:'', party:0, menu:{}, note:'', updatedAt: TS });
-  };
-  // 保存（詳細モーダル）
+
+  // 保存（詳細モーダル）：人数に応じて必要卓数を確保
   window.saveEdit = function(){
     if(!editingId) return;
     const pEl = document.getElementById('partyInput'); if(pEl && window.setParty) window.setParty(pEl.value);
+    const lead = editingId;
     const isVac = draft.status === 'VACANT';
-    const note = isVac ? '' : document.getElementById('noteInput').value.slice(0,60);
-    db.ref('board/tables/'+editingId).update({
-      status: draft.status,
-      time:  isVac ? '' : (draft.time || ''),
-      party: isVac ? 0  : (draft.party || 0),
-      menu:  isVac ? {} : (draft.menu || {}),
-      note:  note,
-      updatedAt: TS
-    });
-    closeModal();
-  };
-  document.getElementById('resetBtn').onclick = function(){
-    if(!confirm('全てのテーブルを「空席」に戻します。よろしいですか？')) return;
+    const party = isVac ? 0 : (draft.party || 0);
+    const time  = isVac ? '' : (draft.time || '');
+    const menu  = isVac ? {} : (draft.menu || {});
+    const note  = isVac ? '' : document.getElementById('noteInput').value.slice(0,60);
+    const oldGid = (state[lead] && state[lead].group) || '';
+    const needed = isVac ? 1 : tablesNeeded(lead, party);
+
     const upd = {};
-    SETUP.tables.forEach(t => { upd[t.id+'/status']='VACANT'; upd[t.id+'/time']=''; upd[t.id+'/party']=0; upd[t.id+'/menu']={}; upd[t.id+'/note']=''; upd[t.id+'/updatedAt']=Date.now(); });
+    // 旧グループの他メンバーはいったん解放（後で必要なら再確保）
+    if(oldGid){ groupMembers(oldGid).forEach(mid => { if(mid!==lead) Object.assign(upd, clearPayload(mid)); }); }
+
+    if(needed <= 1){
+      upd[lead+'/status']=draft.status; upd[lead+'/time']=time; upd[lead+'/party']=party;
+      upd[lead+'/menu']=menu; upd[lead+'/note']=note; upd[lead+'/group']=''; upd[lead+'/gsize']=0; upd[lead+'/glead']=''; upd[lead+'/updatedAt']=Date.now();
+      boardRef.update(upd); closeModal(); return;
+    }
+    const members = collectMembers(lead, needed, oldGid);
+    if(!members){
+      alert('空いているテーブルが足りません（あと'+ (needed - 1) +'卓ぶん必要）。人数を減らすか、先に他の卓を空けてください。');
+      return;
+    }
+    const gid = 'g' + Date.now().toString(36) + Math.floor(Math.random()*900+100);
+    members.forEach(mid => {
+      upd[mid+'/status']=draft.status; upd[mid+'/time']=time; upd[mid+'/group']=gid; upd[mid+'/gsize']=party; upd[mid+'/glead']=lead; upd[mid+'/updatedAt']=Date.now();
+      if(mid===lead){ upd[mid+'/party']=party; upd[mid+'/menu']=menu; upd[mid+'/note']=note; }
+      else { upd[mid+'/party']=0; upd[mid+'/menu']={}; upd[mid+'/note']=''; }
+    });
+    boardRef.update(upd); closeModal();
+  };
+
+  // 1卓リセット（モーダル内）：グループなら全メンバー解放
+  window.resetOne = function(){
+    if(!editingId) return;
+    if(!confirm('この卓（グループのときは同グループ全て）を空席にして、予約情報を消します。よろしいですか？')) return;
+    const gid = (state[editingId] && state[editingId].group) || '';
+    const ids = gid ? groupMembers(gid) : [editingId];
+    const upd = {}; ids.forEach(mid => Object.assign(upd, clearPayload(mid)));
+    boardRef.update(upd); closeModal();
+  };
+  // カード表面の「🧹リセット」：グループなら全メンバー解放
+  window.resetCard = function(id){
+    if(!id) return;
+    if(!confirm('この卓（グループのときは同グループ全て）を空席にして、予約情報を消します。よろしいですか？')) return;
+    const gid = (state[id] && state[id].group) || '';
+    const ids = gid ? groupMembers(gid) : [id];
+    const upd = {}; ids.forEach(mid => Object.assign(upd, clearPayload(mid)));
+    boardRef.update(upd);
+  };
+
+  document.getElementById('resetBtn').onclick = function(){
+    if(!confirm('全てのテーブルを「空席」に戻し、予約情報を消します。よろしいですか？')) return;
+    const upd = {};
+    SETUP.tables.forEach(t => Object.assign(upd, clearPayload(t.id)));
     boardRef.update(upd);
   };
   document.getElementById('closeBtn').onclick = function(){
@@ -303,20 +371,33 @@ function render(){
     const d = state[t.id] || {status:'VACANT'};
     const st = statusMap[d.status] || statusMap['VACANT'];
     if (d.status === 'VACANT'){ freeTables++; freeSeats += (t.seats||0); }
-    if (d.status === 'RESERVED' || d.status === 'SEATED'){ guests += (Number(d.party)||0); }
+    if (d.status === 'RESERVED' || d.status === 'SEATED'){ guests += (Number(d.party)||0); } // リードのみpartyを持つ
+    const gid = d.group || '';
+    const pnum = gid ? (Number(d.gsize)||0) : (Number(d.party)||0);
     const bits = [];
     if (d.time) bits.push('🕐'+esc(d.time));
-    if (d.party) bits.push('👤'+d.party+'名');
+    if (!gid && pnum) bits.push('👤'+pnum+'名');
     const resLine = bits.join('　');
     const menuStr = menuSummary(d.menu);
+    let gbadge = '';
+    if(gid){
+      const gs = groupStyle(gid);
+      const mem = groupMembers(gid).map(labelOf);
+      gbadge = '<div class="gbadge" style="background:'+gs.bg+';color:'+gs.fg+'">'
+        + '<span class="gdot" style="background:'+gs.dot+'"></span>'
+        + 'グループ '+pnum+'名・'+mem.length+'卓'
+        + '<span class="gmem">'+esc(mem.join('・'))+'</span>'
+        + '</div>';
+    }
     let hint;
     if (role === 'phone'){ hint = (d.status === 'RESERVED') ? 'タップで空席に' : 'タップで予約に'; }
     else { hint = (d.status === 'SEATED') ? 'タップで空席に' : 'タップで使用中に'; }
-    const hasInfo = (d.status !== 'VACANT') || !!d.time || (Number(d.party) > 0) || (d.menu && Object.keys(d.menu).length > 0) || !!d.note;
+    const hasInfo = (d.status !== 'VACANT') || !!d.time || pnum>0 || (d.menu && Object.keys(d.menu).length>0) || !!d.note || !!gid;
     return '<div class="card s-'+d.status+'" onclick="quickToggle(\''+t.id+'\')">'
       + '<button class="more" onclick="event.stopPropagation();openEdit(\''+t.id+'\')" aria-label="予約・詳細を入力">✎ 入力</button>'
       + '<div class="card-top"><span class="c-label">'+esc(t.label)+'</span><span class="c-seats">'+t.seats+'席</span></div>'
       + '<div class="c-status">'+st.emoji+' '+st.label+'</div>'
+      + gbadge
       + (resLine ? '<div class="c-res">'+resLine+'</div>' : '')
       + (menuStr ? '<div class="c-menu">'+esc(menuStr)+'</div>' : '')
       + (d.note ? '<div class="c-note">'+esc(d.note)+'</div>' : '')
@@ -332,11 +413,16 @@ function render(){
 
 /* ---- 詳細モーダル（タップだけで入力） ---- */
 window.openEdit = function(id){
-  editingId = id;
-  const t = SETUP.tables.find(x => x.id === id);
-  const d = state[id] || {};
+  const d0 = state[id] || {};
+  const lead = (d0.group && d0.glead) ? d0.glead : id;   // グループのメンバーを開いたら代表卓を編集
+  editingId = lead;
+  const t = SETUP.tables.find(x => x.id === lead);
+  const d = state[lead] || {};
   draft = { status: d.status || 'VACANT', time: d.time || '', party: Number(d.party)||0, menu: Object.assign({}, d.menu || {}) };
-  document.getElementById('modalTitle').textContent = t ? (t.label+'（'+t.seats+'席）') : id;
+  document.getElementById('modalTitle').textContent = t ? (t.label+'（'+t.seats+'席）') : lead;
+  const sub = document.getElementById('modalSub');
+  if(d.group){ sub.textContent = 'グループ: ' + groupMembers(d.group).map(labelOf).join('・') + '（代表 '+labelOf(lead)+'）'; }
+  else { sub.textContent = ''; }
   document.getElementById('noteInput').value = d.note || '';
   renderControls();
   document.getElementById('modalBg').style.display = 'flex';
@@ -350,12 +436,17 @@ function renderControls(){
     + timeSlots().map(t => '<button class="chip'+(draft.time===t?' active':'')+'" onclick="pickTime(\''+t+'\')">'+t+'</button>').join('')
     + '<button class="chip'+(!draft.time?' active':'')+'" onclick="pickTime(\'\')">未定</button>'
     + '</div>';
+  const need = tablesNeeded(editingId, draft.party);
+  const needMsg = (draft.party>0)
+    ? (need>1 ? '→ '+draft.party+'名なので <b>'+need+'卓</b> を自動で確保します（保存時）' : '→ 1卓でOK')
+    : '';
   h += '<div class="sec">人数（＋−ボタン、または直接入力）</div><div class="stepper">'
     + '<button class="step-btn" onclick="addParty(-1)">−</button>'
     + '<input class="step-input" id="partyInput" type="number" inputmode="numeric" min="0" max="99" value="'+(draft.party||0)+'" oninput="setParty(this.value)">'
     + '<span class="step-unit">名</span>'
     + '<button class="step-btn" onclick="addParty(1)">＋</button>'
-    + '</div>';
+    + '</div>'
+    + (needMsg ? '<div class="need-hint">'+needMsg+'</div>' : '');
   h += '<div class="sec">メニュー（＋で人数分を追加）</div><div class="menu-list">'
     + MENUS.map(m => {
         const c = (draft.menu && draft.menu[m.key]) || 0;
@@ -369,8 +460,9 @@ function renderControls(){
 }
 window.pickStatus = function(k){ draft.status = k; renderControls(); };
 window.pickTime  = function(t){ draft.time = t; renderControls(); };
-window.setParty  = function(v){ let n=parseInt(v,10); if(isNaN(n)||n<0) n=0; if(n>99) n=99; draft.party=n; };
-window.addParty  = function(d){ draft.party = Math.max(0, Math.min(99,(draft.party||0)+d)); const el=document.getElementById('partyInput'); if(el) el.value=draft.party; };
+window.setParty  = function(v){ let n=parseInt(v,10); if(isNaN(n)||n<0) n=0; if(n>99) n=99; draft.party=n;
+  const nh=document.querySelector('#editControls .need-hint'); /* 直接入力中は軽く更新 */ if(nh){ const need=tablesNeeded(editingId,n); nh.innerHTML = n>0 ? (need>1?'→ '+n+'名なので <b>'+need+'卓</b> を自動で確保します（保存時）':'→ 1卓でOK') : ''; } };
+window.addParty  = function(d){ draft.party = Math.max(0, Math.min(99,(draft.party||0)+d)); renderControls(); };
 window.addMenu   = function(key,d){
   draft.menu = draft.menu || {};
   draft.menu[key] = Math.max(0, (draft.menu[key]||0)+d);
@@ -378,6 +470,7 @@ window.addMenu   = function(key,d){
   renderControls();
 };
 function closeModal(){ document.getElementById('modalBg').style.display='none'; editingId=null; draft=null; }
+
 document.getElementById('saveBtn').onclick = function(){ if(window.saveEdit) window.saveEdit(); };
 document.getElementById('resetOneBtn').onclick = function(){ if(window.resetOne) window.resetOne(); };
 document.getElementById('modalClose').onclick = closeModal;
