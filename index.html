@@ -81,6 +81,8 @@
   .btn{flex:1;min-height:48px;border:0;border-radius:10px;font-weight:800;font-size:clamp(15px,1.5vw,18px);cursor:pointer}
   .btn-save{background:#2563eb;color:#fff}
   .btn-close{background:#e2e8f0;color:#0f172a}
+  .btn-clear{width:100%;min-height:46px;border:2px solid #fecdd3;background:#fff1f2;color:#be123c;border-radius:10px;font-weight:800;font-size:clamp(13px,1.4vw,16px);cursor:pointer;margin-top:14px}
+  .btn-clear:active{background:#ffe4e6}
   .step-input{width:88px;height:50px;border:2px solid #cbd5e1;border-radius:12px;font-size:26px;font-weight:900;text-align:center;color:#0f172a;padding:0 4px}
   .reset.danger{background:#fee2e2;color:#991b1b}
   .rolebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:6px 10px}
@@ -120,6 +122,7 @@
     <div id="editControls"></div>
     <label class="memo-label" for="noteInput">お名前・メモ（任意）</label>
     <input class="memo-input" id="noteInput" type="text" maxlength="60" placeholder="例: 田中様 / アレルギー: えび">
+    <button class="btn-clear" id="resetOneBtn">🧹 この卓をリセット（空席にして情報を消す）</button>
     <div class="modal-actions">
       <button class="btn btn-save" id="saveBtn">保存する</button>
       <button class="btn btn-close" id="modalClose">閉じる</button>
@@ -243,9 +246,15 @@ function startApp(){
     let next;
     if (role === 'phone'){ next = (cur === 'RESERVED') ? 'VACANT' : 'RESERVED'; }
     else { next = (cur === 'SEATED') ? 'VACANT' : 'SEATED'; }
-    const upd = { status:next, updatedAt: TS };
-    if (next === 'VACANT'){ upd.time=''; upd.party=0; upd.menu={}; upd.note=''; }
-    db.ref('board/tables/'+id).update(upd);
+    // タップは状態のみ変更（時間・人数・メニュー等は消さない）
+    db.ref('board/tables/'+id).update({ status:next, updatedAt: TS });
+  };
+  // 1卓だけリセット（空席にして情報を消去）
+  window.resetOne = function(){
+    if(!editingId) return;
+    if(!confirm('この卓を空席にして、予約情報（時間・人数・メニュー・メモ）を消します。よろしいですか？')) return;
+    db.ref('board/tables/'+editingId).update({ status:'VACANT', time:'', party:0, menu:{}, note:'', updatedAt: TS });
+    closeModal();
   };
   // 保存（詳細モーダル）
   window.saveEdit = function(){
@@ -270,9 +279,9 @@ function startApp(){
     boardRef.update(upd);
   };
   document.getElementById('closeBtn').onclick = function(){
-    if(!confirm('全てのテーブルを「クローズ」にします。（ラストオーダー終了）よろしいですか？')) return;
+    if(!confirm('全てのテーブルを「クローズ」にします。（ラストオーダー終了・予約情報は消えません）よろしいですか？')) return;
     const upd = {};
-    SETUP.tables.forEach(t => { upd[t.id+'/status']='CLOSED'; upd[t.id+'/time']=''; upd[t.id+'/party']=0; upd[t.id+'/menu']={}; upd[t.id+'/note']=''; upd[t.id+'/updatedAt']=Date.now(); });
+    SETUP.tables.forEach(t => { upd[t.id+'/status']='CLOSED'; upd[t.id+'/updatedAt']=Date.now(); });
     boardRef.update(upd);
   };
 }
@@ -346,11 +355,7 @@ function renderControls(){
     + '</div>';
   document.getElementById('editControls').innerHTML = h;
 }
-window.pickStatus = function(k){
-  draft.status = k;
-  if(k === 'VACANT'){ draft.time=''; draft.party=0; draft.menu={}; document.getElementById('noteInput').value=''; }
-  renderControls();
-};
+window.pickStatus = function(k){ draft.status = k; renderControls(); };
 window.pickTime  = function(t){ draft.time = t; renderControls(); };
 window.setParty  = function(v){ let n=parseInt(v,10); if(isNaN(n)||n<0) n=0; if(n>99) n=99; draft.party=n; };
 window.addParty  = function(d){ draft.party = Math.max(0, Math.min(99,(draft.party||0)+d)); const el=document.getElementById('partyInput'); if(el) el.value=draft.party; };
@@ -362,6 +367,7 @@ window.addMenu   = function(key,d){
 };
 function closeModal(){ document.getElementById('modalBg').style.display='none'; editingId=null; draft=null; }
 document.getElementById('saveBtn').onclick = function(){ if(window.saveEdit) window.saveEdit(); };
+document.getElementById('resetOneBtn').onclick = function(){ if(window.resetOne) window.resetOne(); };
 document.getElementById('modalClose').onclick = closeModal;
 document.getElementById('modalBg').onclick = function(e){ if(e.target.id==='modalBg') closeModal(); };
 
