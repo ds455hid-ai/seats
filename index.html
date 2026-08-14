@@ -94,6 +94,7 @@
   .qbtn{width:42px;height:42px;border:0;border-radius:10px;background:#e2e8f0;font-size:23px;font-weight:900;cursor:pointer;line-height:1;color:#0f172a}
   .qbtn:active{background:#cbd5e1}
   .qval{min-width:24px;text-align:center;font-size:19px;font-weight:900}
+  .menu-qty-select{flex:none;min-width:82px;min-height:46px;padding:6px 8px;border:2px solid #cbd5e1;border-radius:10px;font-size:17px;font-weight:800;color:#0f172a;background:#fff}
   .memo-label{display:block;font-size:clamp(12px,1.2vw,14px);font-weight:800;color:#475569;margin:16px 0 6px}
   .memo-input{width:100%;min-height:var(--touch);padding:10px;border:2px solid #cbd5e1;border-radius:10px;font-size:16px}
   .btn-clear{width:100%;min-height:46px;border:2px solid #fecdd3;background:#fff1f2;color:#be123c;border-radius:10px;font-weight:800;font-size:clamp(13px,1.4vw,16px);cursor:pointer;margin-top:14px}
@@ -474,9 +475,11 @@ function renderControls(){
             + '<div class="menu-check">'+(c>0?'✓':'')+'</div>'
             + '</div>';
         }
+        let qopts = '';
+        for(let n=0;n<=28;n++){ qopts += '<option value="'+n+'"'+(c===n?' selected':'')+'>'+(n===0?'—':n+'個')+'</option>'; }
         return '<div class="menu-item'+(c>0?' on':'')+'">'
           + '<div class="menu-info"><span class="menu-name">'+esc(m.name)+'</span><span class="menu-price">'+yen(m.price)+'円</span></div>'
-          + '<div class="menu-qty"><button class="qbtn" onclick="addMenu(\''+m.key+'\',-1)">−</button><span class="qval">'+c+'</span><button class="qbtn" onclick="addMenu(\''+m.key+'\',1)">＋</button></div>'
+          + '<select class="menu-qty-select" onchange="setMenuQty(\''+m.key+'\',this.value)">'+qopts+'</select>'
           + '</div>';
       }).join('')
     + '</div>';
@@ -488,6 +491,12 @@ window.setParty  = function(v){ let n=parseInt(v,10); if(isNaN(n)||n<0) n=0; if(
   const nh=document.querySelector('#editControls .need-hint'); /* 直接入力中は軽く更新 */ if(nh){ const need=tablesNeeded(editingId,n); nh.innerHTML = n>0 ? (need>1?'→ '+n+'名なので <b>'+need+'卓</b> を自動で確保します（保存時）':'→ 1卓でOK') : ''; } };
 window.addParty  = function(d){ draft.party = Math.max(0, Math.min(99,(draft.party||0)+d)); renderControls(); };
 window.setNote   = function(v){ draft.note = v; };
+window.setMenuQty = function(key, v){
+  draft.menu = draft.menu || {};
+  let n = parseInt(v,10); if(isNaN(n)||n<0) n=0; if(n>28) n=28;
+  if(n===0){ delete draft.menu[key]; } else { draft.menu[key]=n; delete draft.menu['m0']; }
+  renderControls();
+};
 window.addMenu   = function(key,d){
   draft.menu = draft.menu || {};
   draft.menu[key] = Math.max(0, (draft.menu[key]||0)+d);
