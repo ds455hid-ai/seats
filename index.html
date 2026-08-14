@@ -39,7 +39,10 @@
   .c-res{margin-top:7px;font-size:clamp(13px,1.35vw,17px);font-weight:800;color:#0f172a}
   .c-menu{margin-top:5px;font-size:clamp(12px,1.15vw,14px);color:#334155;background:#f8fafc;border-radius:8px;padding:5px 9px;word-break:break-word}
   .c-note{margin-top:5px;font-size:clamp(11px,1.1vw,13px);color:#64748b;word-break:break-word}
-  .c-hint{margin-top:auto;padding-top:8px;font-size:clamp(10px,1vw,13px);color:#94a3b8;font-weight:800}
+  .c-hint{font-size:clamp(10px,1vw,13px);color:#94a3b8;font-weight:800}
+  .card-foot{margin-top:auto;padding-top:8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .reset-one{flex:none;border:1px solid #fecdd3;background:#fff1f2;color:#be123c;border-radius:8px;font-weight:800;font-size:clamp(11px,1.1vw,13px);padding:6px 10px;cursor:pointer;min-height:32px;white-space:nowrap}
+  .reset-one:active{background:#ffe4e6}
   .s-VACANT{border-left-color:#16a34a;background:linear-gradient(#f0fdf4,#fff)}
   .s-RESERVED{border-left-color:#d97706;background:linear-gradient(#fffbeb,#fff)}
   .s-SEATED{border-left-color:#dc2626;background:linear-gradient(#fef2f2,#fff)}
@@ -256,6 +259,12 @@ function startApp(){
     db.ref('board/tables/'+editingId).update({ status:'VACANT', time:'', party:0, menu:{}, note:'', updatedAt: TS });
     closeModal();
   };
+  // カードの「🧹リセット」ボタン（表から直接）
+  window.resetCard = function(id){
+    if(!id) return;
+    if(!confirm('この卓を空席にして、予約情報（時間・人数・メニュー・メモ）を消します。よろしいですか？')) return;
+    db.ref('board/tables/'+id).update({ status:'VACANT', time:'', party:0, menu:{}, note:'', updatedAt: TS });
+  };
   // 保存（詳細モーダル）
   window.saveEdit = function(){
     if(!editingId) return;
@@ -303,6 +312,7 @@ function render(){
     let hint;
     if (role === 'phone'){ hint = (d.status === 'RESERVED') ? 'タップで空席に' : 'タップで予約に'; }
     else { hint = (d.status === 'SEATED') ? 'タップで空席に' : 'タップで使用中に'; }
+    const hasInfo = (d.status !== 'VACANT') || !!d.time || (Number(d.party) > 0) || (d.menu && Object.keys(d.menu).length > 0) || !!d.note;
     return '<div class="card s-'+d.status+'" onclick="quickToggle(\''+t.id+'\')">'
       + '<button class="more" onclick="event.stopPropagation();openEdit(\''+t.id+'\')" aria-label="予約・詳細を入力">✎ 入力</button>'
       + '<div class="card-top"><span class="c-label">'+esc(t.label)+'</span><span class="c-seats">'+t.seats+'席</span></div>'
@@ -310,7 +320,9 @@ function render(){
       + (resLine ? '<div class="c-res">'+resLine+'</div>' : '')
       + (menuStr ? '<div class="c-menu">'+esc(menuStr)+'</div>' : '')
       + (d.note ? '<div class="c-note">'+esc(d.note)+'</div>' : '')
-      + '<div class="c-hint">'+hint+'</div>'
+      + '<div class="card-foot"><span class="c-hint">'+hint+'</span>'
+      + (hasInfo ? '<button class="reset-one" onclick="event.stopPropagation();resetCard(\''+t.id+'\')">🧹 リセット</button>' : '')
+      + '</div>'
       + '</div>';
   }).join('');
   document.getElementById('m-tables').textContent = '空き '+freeTables+'卓';
