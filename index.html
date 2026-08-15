@@ -34,7 +34,7 @@
     .brand{margin-right:auto}
   }
 
-  .card{position:relative;display:flex;flex-direction:column;text-align:left;border:0;border-radius:clamp(12px,1.2vw,18px);padding:clamp(12px,1.3vw,20px);min-height:clamp(112px,15vh,180px);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.06);border-left:8px solid #cbd5e1;background:#fff;font-family:inherit;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:transform .08s ease,box-shadow .12s ease}
+  .card{position:relative;display:flex;flex-direction:column;text-align:left;border:0;border-radius:clamp(12px,1.2vw,18px);padding:clamp(12px,1.3vw,20px);min-height:clamp(112px,15vh,180px);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.06);border-left:8px solid #cbd5e1;background:#fff;font-family:inherit;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none;transition:transform .08s ease,box-shadow .12s ease}
   .card:active{transform:scale(.98)}
   .more{position:absolute;top:8px;right:8px;min-width:clamp(56px,7vw,74px);height:clamp(30px,3vw,38px);border:0;border-radius:9px;background:rgba(37,99,235,.1);color:#1e40af;font-size:clamp(12px,1.2vw,14px);font-weight:900;line-height:1;cursor:pointer;padding:0 8px;display:flex;align-items:center;justify-content:center;gap:4px}
   .more:active{background:rgba(37,99,235,.2)}
@@ -722,14 +722,13 @@ document.getElementById('choiceModal').onclick = function(e){ if(e.target.id ===
   grid.addEventListener('pointerdown', function(e){
     const card = e.target.closest('.card'); if(!card) return;
     if(e.target.closest('button')) return; // ボタンはそのまま
-    ds = { id: card.dataset.id, x0: e.clientX, y0: e.clientY, card: card, armed: (e.pointerType === 'mouse'), dragging: false, timer: null };
-    if(e.pointerType !== 'mouse'){ ds.timer = setTimeout(function(){ if(ds){ ds.armed = true; ds.card.classList.add('drag-ready'); } }, 260); }
+    ds = { id: card.dataset.id, x0: e.clientX, y0: e.clientY, card: card, dragging: false, pid: e.pointerId };
+    try { card.setPointerCapture(e.pointerId); } catch(_){}
   });
   window.addEventListener('pointermove', function(e){
     if(!ds) return;
     const dist = Math.hypot(e.clientX - ds.x0, e.clientY - ds.y0);
-    if(!ds.armed){ if(dist > 10){ clearTimeout(ds.timer); ds.card.classList.remove('drag-ready'); ds = null; } return; }
-    if(!ds.dragging){ if(dist > 6){ ds.dragging = true; makeGhost(ds.card); } else return; }
+    if(!ds.dragging){ if(dist > 8){ ds.dragging = true; makeGhost(ds.card); } else return; }
     e.preventDefault();
     moveGhost(e.clientX, e.clientY);
     clearHi();
@@ -738,8 +737,7 @@ document.getElementById('choiceModal').onclick = function(e){ if(e.target.id ===
   }, { passive: false });
   window.addEventListener('pointerup', function(e){
     if(!ds) return;
-    clearTimeout(ds.timer);
-    ds.card.classList.remove('drag-ready');
+    try { ds.card.releasePointerCapture(ds.pid); } catch(_){}
     const wasDragging = ds.dragging, srcId = ds.id;
     killGhost(); clearHi();
     if(wasDragging){
@@ -750,6 +748,7 @@ document.getElementById('choiceModal').onclick = function(e){ if(e.target.id ===
     }
     ds = null;
   });
+  window.addEventListener('pointercancel', function(){ if(ds){ killGhost(); clearHi(); ds = null; } });
   grid.addEventListener('click', function(e){ if(justDragged){ e.stopPropagation(); e.preventDefault(); } }, true);
 })();
 </script>
