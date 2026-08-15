@@ -34,7 +34,7 @@
     .brand{margin-right:auto}
   }
 
-  .card{position:relative;display:flex;flex-direction:column;text-align:left;border:0;border-radius:clamp(12px,1.2vw,18px);padding:clamp(12px,1.3vw,20px);min-height:clamp(112px,15vh,180px);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.06);border-left:8px solid #cbd5e1;background:#fff;font-family:inherit;-webkit-tap-highlight-color:transparent;transition:transform .08s ease,box-shadow .12s ease}
+  .card{position:relative;display:flex;flex-direction:column;text-align:left;border:0;border-radius:clamp(12px,1.2vw,18px);padding:clamp(12px,1.3vw,20px);min-height:clamp(112px,15vh,180px);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.06);border-left:8px solid #cbd5e1;background:#fff;font-family:inherit;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:transform .08s ease,box-shadow .12s ease}
   .card:active{transform:scale(.98)}
   .more{position:absolute;top:8px;right:8px;min-width:clamp(56px,7vw,74px);height:clamp(30px,3vw,38px);border:0;border-radius:9px;background:rgba(37,99,235,.1);color:#1e40af;font-size:clamp(12px,1.2vw,14px);font-weight:900;line-height:1;cursor:pointer;padding:0 8px;display:flex;align-items:center;justify-content:center;gap:4px}
   .more:active{background:rgba(37,99,235,.2)}
@@ -104,6 +104,11 @@
   .op-btn{width:100%;min-height:48px;border:2px solid #cbd5e1;background:#fff;color:#0f172a;border-radius:10px;font-weight:800;font-size:clamp(13px,1.4vw,16px);cursor:pointer}
   .op-btn:active{background:#f1f5f9}
   .op-detach{border-color:#fed7aa;background:#fff7ed;color:#9a3412}
+  .draghelp{font-size:clamp(11px,1.2vw,13px);color:#64748b;font-weight:700}
+  .drag-ghost{position:fixed;left:0;top:0;pointer-events:none;opacity:.92;transform:translate(-50%,-50%);z-index:100;box-shadow:0 14px 34px rgba(0,0,0,.32);border-radius:14px;overflow:hidden}
+  .drag-src{opacity:.35}
+  .drag-ready{outline:3px dashed #2563eb;outline-offset:-3px}
+  .drop-target{outline:4px solid #2563eb !important;outline-offset:-4px;box-shadow:0 0 0 5px rgba(37,99,235,.22) !important}
   .memo-label{display:block;font-size:clamp(12px,1.2vw,14px);font-weight:800;color:#475569;margin:16px 0 6px}
   .memo-input{width:100%;min-height:var(--touch);padding:10px;border:2px solid #cbd5e1;border-radius:10px;font-size:16px}
   .btn-clear{width:100%;min-height:46px;border:2px solid #fecdd3;background:#fff1f2;color:#be123c;border-radius:10px;font-weight:800;font-size:clamp(13px,1.4vw,16px);cursor:pointer;margin-top:14px}
@@ -130,6 +135,7 @@
   </div>
   <button class="reset" id="resetBtn">全席リセット</button>
   <button class="reset danger" id="closeBtn">全席クローズ（L.O.終了）</button>
+  <span class="draghelp">💡 カードをドラッグ → 重ねて「くっつける」／空席へ「移動」／余白へ「離す」</span>
 </header>
 
 <div id="moveBar" class="movebar" style="display:none"></div>
@@ -304,10 +310,7 @@ function startApp(){
       const src = moveSrc.id, type = moveSrc.type;
       if(id === src){ moveSrc = null; updateMoveBar(); return; }
       if(type === 'join'){
-        if(state[id] && state[id].status && state[id].status !== 'VACANT' && !(state[id].group)){
-          if(!confirm('「'+labelOf(id)+'」の予約内容は消えて、グループに加わります。よろしいですか？')) return;
-        }
-        window.doJoin(src, id);
+        window.doJoinMerge(src, id);
       } else {
         window.doMoveSwap(src, id);
       }
@@ -420,6 +423,33 @@ function startApp(){
     });
     boardRef.update(upd);
   };
+  // くっつける（統合）：a側とb側の卓を1グループにまとめる（グループどうしの結合もOK）
+  window.doJoinMerge = function(a, b){
+    if(a === b) return;
+    const setA = (state[a] && state[a].group) ? groupMembers(state[a].group) : [a];
+    const setB = (state[b] && state[b].group) ? groupMembers(state[b].group) : [b];
+    const all = Array.from(new Set(setA.concat(setB)));
+    const has = (id) => state[id] && state[id].status && state[id].status !== 'VACANT';
+    const leadOf = (id) => (state[id] && state[id].group) ? (state[id].glead || id) : (has(id) ? id : null);
+    const bLead = leadOf(b), aLead = leadOf(a);
+    let lead;
+    if(bLead && aLead && bLead !== aLead){
+      if(!confirm('2つの予約をひとつにまとめます。「'+labelOf(aLead)+'」側の予約内容は消えます。よろしいですか？')) return;
+      lead = bLead;
+    } else { lead = bLead || aLead || b; }
+    const leadRec = contentOf(lead);
+    let party = Number(state[lead] && state[lead].party) || 0;
+    if(!(party > 0)) party = Number(state[lead] && state[lead].gsize) || 0;
+    const st = (leadRec.status === 'VACANT') ? 'RESERVED' : (leadRec.status || 'RESERVED');
+    const gid = 'g' + Date.now().toString(36) + Math.floor(Math.random()*900+100);
+    const upd = {};
+    all.forEach(mid => {
+      upd[mid+'/group']=gid; upd[mid+'/glead']=lead; upd[mid+'/gsize']=party; upd[mid+'/updatedAt']=Date.now();
+      if(mid === lead){ upd[mid+'/status']=st; upd[mid+'/time']=leadRec.time; upd[mid+'/party']=party; upd[mid+'/menu']=leadRec.menu||{}; upd[mid+'/note']=leadRec.note; }
+      else { upd[mid+'/status']=st; upd[mid+'/time']=leadRec.time; upd[mid+'/party']=0; upd[mid+'/menu']={}; upd[mid+'/note']=''; }
+    });
+    boardRef.update(upd);
+  };
 
   document.getElementById('resetBtn').onclick = function(){
     if(!confirm('全てのテーブルを「空席」に戻し、予約情報を消します。よろしいですか？')) return;
@@ -471,7 +501,7 @@ function render(){
     const hasInfo = (d.status !== 'VACANT') || !!d.time || pnum>0 || (d.menu && Object.keys(d.menu).length>0) || !!d.note || !!gid;
     let head = '';
     if(t.area && t.area !== lastArea){ head = '<div class="area-head">'+esc(t.area)+'</div>'; lastArea = t.area; }
-    return head + '<div class="card s-'+d.status+'" onclick="quickToggle(\''+t.id+'\')">'
+    return head + '<div class="card s-'+d.status+'" data-id="'+t.id+'" onclick="quickToggle(\''+t.id+'\')">'
       + '<button class="more" onclick="event.stopPropagation();openEdit(\''+t.id+'\')" aria-label="予約・詳細を入力">✎ 入力</button>'
       + '<div class="card-top"><span class="c-label">'+esc(t.label)+'</span><span class="c-seats">'+t.seats+'席</span></div>'
       + '<div class="c-status">'+st.emoji+' '+st.label+'</div>'
@@ -627,6 +657,73 @@ window.setRole = function(r){ role=(r==='phone'?'phone':'floor'); try{localStora
 document.getElementById('roleFloor').onclick = function(){ setRole('floor'); };
 document.getElementById('rolePhone').onclick = function(){ setRole('phone'); };
 applyRoleUI();
+
+/* ---- ドラッグ&ドロップ（くっつける／移動／離す） ---- */
+function onDrop(src, dest){
+  if(!src) return;
+  if(!dest){ // 余白へドロップ = グループを離す
+    const g = state[src] && state[src].group;
+    if(g){ if(confirm('「'+labelOf(src)+'」を含むグループを離しますか？')){ if(window.dissolveGroup) window.dissolveGroup(g); } }
+    return;
+  }
+  if(dest === src) return;
+  const srcG = state[src] && state[src].group;
+  const destG = state[dest] && state[dest].group;
+  const destHas = state[dest] && state[dest].status && state[dest].status !== 'VACANT';
+  if(!srcG && !destG && !destHas){
+    if(window.doMoveSwap) window.doMoveSwap(src, dest);   // 単独→空席 = 移動
+  } else {
+    if(window.doJoinMerge) window.doJoinMerge(src, dest);  // それ以外 = くっつける／まとめる
+  }
+}
+(function(){
+  const grid = document.getElementById('grid');
+  if(!grid) return;
+  let ds = null, ghost = null, justDragged = false;
+  function cardAt(x,y){ const el = document.elementFromPoint(x,y); return el ? el.closest('.card') : null; }
+  function clearHi(){ grid.querySelectorAll('.drop-target').forEach(c => c.classList.remove('drop-target')); }
+  function makeGhost(card){
+    ghost = card.cloneNode(true);
+    ghost.classList.add('drag-ghost');
+    ghost.style.width = card.getBoundingClientRect().width + 'px';
+    document.body.appendChild(ghost);
+    card.classList.add('drag-src');
+  }
+  function moveGhost(x,y){ if(ghost){ ghost.style.left = x+'px'; ghost.style.top = y+'px'; } }
+  function killGhost(){ if(ghost){ ghost.remove(); ghost = null; } grid.querySelectorAll('.drag-src').forEach(c => c.classList.remove('drag-src')); }
+  grid.addEventListener('pointerdown', function(e){
+    const card = e.target.closest('.card'); if(!card) return;
+    if(e.target.closest('button')) return; // ボタンはそのまま
+    ds = { id: card.dataset.id, x0: e.clientX, y0: e.clientY, card: card, armed: (e.pointerType === 'mouse'), dragging: false, timer: null };
+    if(e.pointerType !== 'mouse'){ ds.timer = setTimeout(function(){ if(ds){ ds.armed = true; ds.card.classList.add('drag-ready'); } }, 260); }
+  });
+  window.addEventListener('pointermove', function(e){
+    if(!ds) return;
+    const dist = Math.hypot(e.clientX - ds.x0, e.clientY - ds.y0);
+    if(!ds.armed){ if(dist > 10){ clearTimeout(ds.timer); ds.card.classList.remove('drag-ready'); ds = null; } return; }
+    if(!ds.dragging){ if(dist > 6){ ds.dragging = true; makeGhost(ds.card); } else return; }
+    e.preventDefault();
+    moveGhost(e.clientX, e.clientY);
+    clearHi();
+    const over = cardAt(e.clientX, e.clientY);
+    if(over && over.dataset.id !== ds.id){ over.classList.add('drop-target'); }
+  }, { passive: false });
+  window.addEventListener('pointerup', function(e){
+    if(!ds) return;
+    clearTimeout(ds.timer);
+    ds.card.classList.remove('drag-ready');
+    const wasDragging = ds.dragging, srcId = ds.id;
+    killGhost(); clearHi();
+    if(wasDragging){
+      justDragged = true; setTimeout(function(){ justDragged = false; }, 350);
+      const over = cardAt(e.clientX, e.clientY);
+      const destId = (over && over.dataset.id !== srcId) ? over.dataset.id : null;
+      onDrop(srcId, destId);
+    }
+    ds = null;
+  });
+  grid.addEventListener('click', function(e){ if(justDragged){ e.stopPropagation(); e.preventDefault(); } }, true);
+})();
 </script>
 </body>
 </html>
