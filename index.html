@@ -109,6 +109,12 @@
   .drag-src{opacity:.35}
   .drag-ready{outline:3px dashed #2563eb;outline-offset:-3px}
   .drop-target{outline:4px solid #2563eb !important;outline-offset:-4px;box-shadow:0 0 0 5px rgba(37,99,235,.22) !important}
+  .choice-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;padding:16px;z-index:60}
+  .choice-box{background:#fff;border-radius:16px;padding:18px;width:100%;max-width:390px;display:flex;flex-direction:column;gap:10px}
+  .choice-title{font-weight:800;font-size:clamp(14px,1.5vw,16px);margin-bottom:4px;line-height:1.45}
+  .choice-opt{min-height:54px;border:2px solid #cbd5e1;background:#fff;border-radius:12px;font-weight:800;font-size:clamp(14px,1.5vw,17px);cursor:pointer;color:#0f172a;text-align:left;padding:10px 14px}
+  .choice-opt:active{background:#f1f5f9}
+  .choice-cancel{min-height:44px;border:0;background:#e2e8f0;border-radius:10px;font-weight:800;font-size:15px;cursor:pointer;color:#0f172a}
   .memo-label{display:block;font-size:clamp(12px,1.2vw,14px);font-weight:800;color:#475569;margin:16px 0 6px}
   .memo-input{width:100%;min-height:var(--touch);padding:10px;border:2px solid #cbd5e1;border-radius:10px;font-size:16px}
   .btn-clear{width:100%;min-height:46px;border:2px solid #fecdd3;background:#fff1f2;color:#be123c;border-radius:10px;font-weight:800;font-size:clamp(13px,1.4vw,16px);cursor:pointer;margin-top:14px}
@@ -139,6 +145,15 @@
 </header>
 
 <div id="moveBar" class="movebar" style="display:none"></div>
+
+<div id="choiceModal" class="choice-bg">
+  <div class="choice-box">
+    <div class="choice-title" id="choiceTitle"></div>
+    <button class="choice-opt" id="choiceSwap">🔀 入れ替える（お互いのテーブルを交換）</button>
+    <button class="choice-opt" id="choiceJoin">🔗 統合する（くっつけて1グループに）</button>
+    <button class="choice-cancel" id="choiceCancel">キャンセル</button>
+  </div>
+</div>
 
 <div class="setup-warn" id="setupWarn">
   ⚠️ Firebaseの設定（databaseURL）がまだ入っていません。コード上部の firebaseConfig を貼り付けてください。
@@ -659,6 +674,13 @@ document.getElementById('rolePhone').onclick = function(){ setRole('phone'); };
 applyRoleUI();
 
 /* ---- ドラッグ&ドロップ（くっつける／移動／離す） ---- */
+let choicePair = null;
+function showJoinSwapChoice(src, dest){
+  choicePair = { src: src, dest: dest };
+  document.getElementById('choiceTitle').textContent = '「'+labelOf(src)+'」を「'+labelOf(dest)+'」（予約あり）に重ねました。どうしますか？';
+  document.getElementById('choiceModal').style.display = 'flex';
+}
+function hideChoice(){ choicePair = null; document.getElementById('choiceModal').style.display = 'none'; }
 function onDrop(src, dest){
   if(!src) return;
   if(!dest){ // 余白へドロップ = グループを離す
@@ -669,13 +691,19 @@ function onDrop(src, dest){
   if(dest === src) return;
   const srcG = state[src] && state[src].group;
   const destG = state[dest] && state[dest].group;
+  const srcHas = state[src] && state[src].status && state[src].status !== 'VACANT';
   const destHas = state[dest] && state[dest].status && state[dest].status !== 'VACANT';
-  if(!srcG && !destG && !destHas){
-    if(window.doMoveSwap) window.doMoveSwap(src, dest);   // 単独→空席 = 移動
-  } else {
-    if(window.doJoinMerge) window.doJoinMerge(src, dest);  // それ以外 = くっつける／まとめる
+  if(!srcG && !destG){
+    if(!destHas){ if(window.doMoveSwap) window.doMoveSwap(src, dest); return; }  // →空席 = 移動
+    if(srcHas && destHas){ showJoinSwapChoice(src, dest); return; }             // 予約↔予約 = 選択（統合/入替）
+    if(window.doJoinMerge) window.doJoinMerge(src, dest); return;               // 空カード→予約 = くっつける
   }
+  if(window.doJoinMerge) window.doJoinMerge(src, dest);                         // グループ関与 = 統合/拡張
 }
+document.getElementById('choiceSwap').onclick = function(){ if(choicePair && window.doMoveSwap) window.doMoveSwap(choicePair.src, choicePair.dest); hideChoice(); };
+document.getElementById('choiceJoin').onclick = function(){ if(choicePair && window.doJoinMerge) window.doJoinMerge(choicePair.src, choicePair.dest); hideChoice(); };
+document.getElementById('choiceCancel').onclick = hideChoice;
+document.getElementById('choiceModal').onclick = function(e){ if(e.target.id === 'choiceModal') hideChoice(); };
 (function(){
   const grid = document.getElementById('grid');
   if(!grid) return;
