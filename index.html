@@ -44,6 +44,7 @@
   .c-status{font-size:clamp(17px,1.9vw,26px);font-weight:900}
   .gbadge{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px;padding:4px 10px;border-radius:999px;font-weight:800;font-size:clamp(11px,1.15vw,14px);line-height:1.3}
   .gdot{width:12px;height:12px;border-radius:50%;flex:none}
+  .glet{min-width:23px;height:23px;padding:0 5px;border-radius:999px;flex:none;color:#fff;font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center}
   .gmem{font-weight:700;opacity:.9;font-size:.92em}
   .c-res{margin-top:7px;font-size:clamp(13px,1.35vw,17px);font-weight:800;color:#0f172a}
   .c-menu{margin-top:5px;font-size:clamp(12px,1.15vw,14px);color:#334155;background:#f8fafc;border-radius:8px;padding:5px 9px;word-break:break-word}
@@ -485,6 +486,9 @@ function render(){
   const grid = document.getElementById('grid');
   let freeTables = 0, freeSeats = 0, guests = 0;
   let lastArea = null;
+  // グループにA,B,C…のラベルを割り当て（離れた席でも同じ組と分かるように）
+  const groupLetters = {}; let _gi = 0;
+  SETUP.tables.forEach(t => { const g = (state[t.id] && state[t.id].group) || ''; if(g && !(g in groupLetters)){ groupLetters[g] = String.fromCharCode(65 + (_gi % 26)); _gi++; } });
   grid.innerHTML = SETUP.tables.map(t => {
     const d = state[t.id] || {status:'VACANT'};
     const st = statusMap[d.status] || statusMap['VACANT'];
@@ -501,9 +505,10 @@ function render(){
     if(gid){
       const gs = groupStyle(gid);
       const mem = groupMembers(gid).map(labelOf);
+      const gl = groupLetters[gid] || '';
       gbadge = '<div class="gbadge" style="background:'+gs.bg+';color:'+gs.fg+'">'
-        + '<span class="gdot" style="background:'+gs.dot+'"></span>'
-        + 'グループ '+pnum+'名・'+mem.length+'卓'
+        + '<span class="glet" style="background:'+gs.dot+'">'+gl+'</span>'
+        + 'グループ'+gl+'・'+pnum+'名・'+mem.length+'卓'
         + '<span class="gmem">'+esc(mem.join('・'))+'</span>'
         + '</div>';
     }
