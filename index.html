@@ -696,9 +696,11 @@ function onDrop(src, dest){
   if(!srcG && !destG){
     if(!destHas){ if(window.doMoveSwap) window.doMoveSwap(src, dest); return; }  // →空席 = 移動
     if(srcHas && destHas){ showJoinSwapChoice(src, dest); return; }             // 予約↔予約 = 選択（統合/入替）
-    if(window.doJoinMerge) window.doJoinMerge(src, dest); return;               // 空カード→予約 = くっつける
+    // 空カード → 予約/使用中 = 確認してから結合
+    if(confirm('「'+labelOf(src)+'」を「'+labelOf(dest)+'」に結合（同じグループに）しますか？')){ if(window.doJoinMerge) window.doJoinMerge(src, dest); }
+    return;
   }
-  if(window.doJoinMerge) window.doJoinMerge(src, dest);                         // グループ関与 = 統合/拡張
+  if(window.doJoinMerge) window.doJoinMerge(src, dest);                         // グループ関与 = 統合/拡張（必要な確認はdoJoinMerge内）
 }
 document.getElementById('choiceSwap').onclick = function(){ if(choicePair && window.doMoveSwap) window.doMoveSwap(choicePair.src, choicePair.dest); hideChoice(); };
 document.getElementById('choiceJoin').onclick = function(){ if(choicePair && window.doJoinMerge) window.doJoinMerge(choicePair.src, choicePair.dest); hideChoice(); };
