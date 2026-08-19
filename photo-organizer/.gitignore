@@ -1,0 +1,17 @@
+# PC側アプリ
+pc-app/.venv/
+pc-app/data/
+pc-app/config/settings.yaml
+pc-app/__pycache__/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+
+# macOS
+.DS_Store
+
+# Xcode
+iphone-app/**/*.xcuserstate
+iphone-app/**/xcuserdata/
+iphone-app/**/DerivedData/
+iphone-app/**/.build/

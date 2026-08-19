@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}削除予定{% endblock %}
+{% block content %}
+<h1>削除予定</h1>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="label">写真</div><div class="value">{{ "{:,}".format(photo_count) }}件</div></div>
+  <div class="stat-card"><div class="label">動画</div><div class="value">{{ "{:,}".format(video_count) }}件</div></div>
+  <div class="stat-card"><div class="label">削減予定</div><div class="value">{{ "%.1f"|format(total_size / 1073741824) }}GB</div></div>
+</div>
+
+<div class="notice">
+  ここではPC側で削除対象を確定するだけで、実際の削除は行いません。
+  「delete_manifest.json を生成」を押すと確定し、そのファイルをUSB/SSD経由でiPhoneアプリに渡します。
+  最終的な削除はiPhone側で本人が確認した上で実行します。
+</div>
+
+<p><button class="btn" onclick="generateManifest()">delete_manifest.json を生成(削除対象を確定)</button></p>
+
+<div class="card">
+  <table>
+    <tr><th></th><th>ファイル名</th><th>種類</th><th>容量</th><th>撮影日時</th><th>スコア</th><th>理由</th><th>操作</th></tr>
+    {% for i in items %}
+    <tr style="{% if i['user_status'] == 'excluded' %}opacity:0.5;{% endif %}">
+      <td>{% if i["user_status"] == "excluded" %}除外{% else %}✓{% endif %}</td>
+      <td>{{ i["file_name"] }}</td>
+      <td>{{ "写真" if i["media_type"] == "photo" else "動画" }}</td>
+      <td>{{ "%.1f"|format(i["file_size"] / 1048576) }}MB</td>
+      <td>{{ i["captured_at"] or "不明" }}</td>
+      <td>{{ i["score"] }}</td>
+      <td>{% for r in i["reasons_ja"] %}<span class="badge">{{ r }}</span>{% endfor %}</td>
+      <td>
+        {% if i["user_status"] == "excluded" %}
+          <button class="btn secondary" onclick="setCandidateStatus({{ i['media_id'] }}, 'candidate')">削除対象に戻す</button>
+        {% else %}
+          <button class="btn secondary" onclick="setCandidateStatus({{ i['media_id'] }}, 'excluded')">残す(除外)</button>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

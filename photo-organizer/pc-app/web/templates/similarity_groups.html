@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}類似写真グループ{% endblock %}
+{% block content %}
+<h1>類似{{ "動画" if group_type == "video" else "写真" }}グループ</h1>
+<p>{{ groups|length }}グループあります。グループごとに「残す推奨」の1枚(1本)が自動選択されていますが、変更できます。</p>
+
+<div class="card">
+  <table>
+    <tr><th>グループ</th><th>件数</th><th>手法</th><th></th></tr>
+    {% for g in groups %}
+    <tr>
+      <td>類似{{ "動画" if group_type == "video" else "写真" }}グループ #{{ "%03d"|format(g["id"]) }}</td>
+      <td>{{ g["item_count"] }}件</td>
+      <td>{{ g["method"] }}</td>
+      <td><a class="btn" href="/similarity-groups/{{ g['id'] }}">比較する</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}類似写真グループ #{{ group['id'] }}{% endblock %}
+{% block content %}
+<h1>類似{{ "動画" if group["group_type"] == "video" else "写真" }}グループ #{{ "%03d"|format(group["id"]) }}</h1>
+<p>{{ items|length }}件。青枠が「残す推奨」です。チェックで残す/削除候補を変更できます。</p>
+
+<div class="photo-grid">
+  {% for item in items %}
+  <div class="photo-card {% if item['is_keep_recommended'] %}recommended{% endif %}">
+    {% if group["group_type"] == "photo" %}
+      <img src="/media/{{ item['media_id'] }}/preview" style="max-width:100%;border-radius:6px;" loading="lazy">
+    {% else %}
+      <div style="font-size:2rem;">🎬</div>
+    {% endif %}
+    <div class="filename">{{ item["file_name"] }}</div>
+    {% if item["is_keep_recommended"] %}<span class="badge keep">残す推奨</span>{% endif %}
+    {% if item["distance"] is not none %}<span class="badge">距離: {{ item["distance"] }}</span>{% endif %}
+    <div style="margin-top:8px;">
+      <label><input type="radio" name="decision-{{ item['media_id'] }}" onclick="setSimilarityDecision({{ group['id'] }}, {{ item['media_id'] }}, 'keep')" {% if item['user_decision'] == 'keep' or (not item['user_decision'] and item['is_keep_recommended']) %}checked{% endif %}> 残す</label><br>
+      <label><input type="radio" name="decision-{{ item['media_id'] }}" onclick="setSimilarityDecision({{ group['id'] }}, {{ item['media_id'] }}, 'delete')" {% if item['user_decision'] == 'delete' or (not item['user_decision'] and not item['is_keep_recommended']) %}checked{% endif %}> 削除候補にする</label>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<p style="margin-top:20px;"><a href="/similarity-groups?group_type={{ group['group_type'] }}">← グループ一覧へ戻る</a></p>
+{% endblock %}

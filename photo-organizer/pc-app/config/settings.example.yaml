@@ -1,0 +1,40 @@
+# アプリ設定ファイルの例。
+# 実際に使うときは settings.yaml という名前でコピーして値を書き換えてください。
+# (settings.yaml は個人環境依存のため .gitignore 対象です)
+
+# 解析データベースの保存場所
+database_path: "./data/photo_organizer.db"
+
+# サムネイル/代表フレームのキャッシュ保存場所
+thumbnail_cache_dir: "./data/thumbnails"
+
+# スコアリングルール設定ファイル
+scoring_rules_path: "./config/scoring_rules.yaml"
+
+# 並列処理のワーカー数(お使いのPCのCPUコア数に応じて調整してください)
+worker_count: 4
+
+# 1バッチあたりに処理するファイル数(メモリ使用量に影響します)
+batch_size: 200
+
+# 動画から抽出する代表フレームの最大枚数
+max_video_frames: 5
+
+# ffmpeg / ffprobe の実行ファイルパス
+# 通常は "ffmpeg" "ffprobe" のままでPATHから見つかりますが、
+# 見つからない場合はフルパスを指定してください。
+ffmpeg_path: "ffmpeg"
+ffprobe_path: "ffprobe"
+
+# 対応拡張子(将来の拡張用。ここに追加するだけで対応形式を増やせます)
+photo_extensions:
+  - ".jpg"
+  - ".jpeg"
+  - ".png"
+  - ".heic"
+  - ".webp"
+
+video_extensions:
+  - ".mov"
+  - ".mp4"
+  - ".m4v"

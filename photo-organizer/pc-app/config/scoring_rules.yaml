@@ -1,0 +1,37 @@
+# 削除候補スコア設定 (0〜100)
+# ここを編集するだけでスコアリングのルールを変更できます。コードの変更は不要です。
+# 複数の理由に当てはまる場合は加算され、最大100でクリップされます。
+
+rules:
+  exact_duplicate_non_keep: 90      # 完全重複グループ内で「残す推奨」以外
+  similarity_duplicate_rank2plus: 60 # 類似写真グループの2枚目以降(残す推奨以外)
+  blurry: 40                         # ピンぼけ(Laplacian分散が閾値未満)
+  too_dark: 30                       # 極端に暗い
+  too_bright: 15                     # 極端に明るい(白飛び)
+  near_black: 35                     # ほぼ真っ黒(誤撮影の可能性)
+  low_resolution: 20                 # 低解像度
+  corrupt_or_unreadable: 95          # 破損・読み込み不可
+  screenshot: 20                     # スクリーンショット推定
+  screen_recording: 30               # 画面録画推定
+  large_video: 20                    # 大容量動画
+  too_short_video: 40                # 短すぎる動画(誤撮影候補)
+  low_quality_video: 20              # 低画質動画
+  similar_video_rank2plus: 55        # 類似動画グループの2本目以降
+
+thresholds:
+  blur_laplacian_variance: 100.0     # これ未満をピンぼけとみなす
+  dark_brightness_mean: 35.0         # 0-255スケール。これ未満を暗いとみなす
+  bright_brightness_mean: 235.0      # これ超を明るい(白飛び)とみなす
+  near_black_brightness_mean: 10.0
+  low_resolution_pixels: 500000      # 幅×高さがこれ未満を低解像度とみなす(約0.5MP)
+  phash_similarity_max_distance: 10  # pHashハミング距離がこれ以下なら類似とみなす(0-64)
+  large_video_bytes: 524288000       # 500MB
+  too_short_video_seconds: 1.5       # これ未満の動画を誤撮影候補とみなす
+  low_quality_video_pixels: 307200   # 幅×高さがこれ未満(約640x480)を低画質とみなす
+  screen_recording_min_fps_stable: true
+
+# 大容量動画の基準はUIから複数プリセットを選べるようにする(参考値)
+large_video_presets_bytes:
+  - 524288000    # 500MB
+  - 1073741824   # 1GB
+  - 2147483648   # 2GB

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>削除候補の写真・動画を安全に照合するため、写真ライブラリへのアクセスを使用します。内容は外部に送信されません。</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>このアプリは写真の追加は行いません。</string>
+    <key>UILaunchScreen</key>
+    <dict/>
+</dict>
+</plist>

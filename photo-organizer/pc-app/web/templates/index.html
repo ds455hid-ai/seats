@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}ダッシュボード - AI写真・動画整理システム{% endblock %}
+{% block content %}
+<h1>ダッシュボード</h1>
+
+<div class="card">
+  <h3>1. フォルダを選んで解析を開始</h3>
+  <p>PC内のフォルダ、外付けSSD、USBストレージのパスを入力してください。(例: /Volumes/BackupSSD/DCIM)</p>
+  <input type="text" id="root-folder" placeholder="解析したいフォルダのパス">
+  <p><button class="btn" onclick="startScan()" {% if job_running %}disabled{% endif %}>解析開始</button></p>
+  <p id="job-status">{% if job_running %}解析実行中です...{% endif %}</p>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="label">写真</div><div class="value">{{ "{:,}".format(stats.photo_count) }}枚</div></div>
+  <div class="stat-card"><div class="label">動画</div><div class="value">{{ "{:,}".format(stats.video_count) }}本</div></div>
+  <div class="stat-card"><div class="label">総容量</div><div class="value">{{ "%.1f"|format(stats.total_size / 1073741824) }}GB</div></div>
+  <div class="stat-card"><div class="label">解析済み</div><div class="value">{{ stats.analyzed_pct }}%</div></div>
+  <div class="stat-card"><div class="label">削除候補</div><div class="value">{{ "{:,}".format(stats.candidate_count) }}件</div></div>
+  <div class="stat-card"><div class="label">推定削減可能容量</div><div class="value">{{ "%.1f"|format(stats.estimated_savings / 1073741824) }}GB</div></div>
+</div>
+
+<div class="card">
+  <h3>カテゴリ別 削除候補</h3>
+  <table>
+    <tr><th>カテゴリ</th><th>件数</th><th>容量</th></tr>
+    {% for c in categories %}
+    <tr>
+      <td>{{ c.label }}</td>
+      <td>{{ "{:,}".format(c.count) }}件</td>
+      <td>{{ "%.2f"|format(c.size / 1073741824) }}GB</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="notice">
+  重要: このシステムは削除候補を提示するだけです。実際の削除は必ずユーザー(店舗スタッフ・お客様本人)の確認を経て、
+  iPhoneアプリ側で最終確認した上で実行されます。自動削除は一切行いません。
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}AI写真・動画整理システム{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">📷 AI写真・動画整理システム</a>
+    <nav>
+      <a href="/">ダッシュボード</a>
+      <a href="/similarity-groups">類似写真</a>
+      <a href="/videos">動画</a>
+      <a href="/delete-review">削除予定</a>
+      <a href="/settings">設定</a>
+    </nav>
+  </header>
+  <main class="content">
+    {% block content %}{% endblock %}
+  </main>
+  <script src="/static/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

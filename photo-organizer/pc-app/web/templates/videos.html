@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}動画一覧{% endblock %}
+{% block content %}
+<h1>動画一覧</h1>
+<p>削除候補スコアが高い順に並んでいます。</p>
+
+<div class="card">
+  <table>
+    <tr><th>サムネイル</th><th>ファイル名</th><th>容量</th><th>時間</th><th>撮影日時</th><th>解像度</th><th>削除候補理由</th></tr>
+    {% for v in videos %}
+    <tr>
+      <td><img src="/thumbnails/{{ v['id'] }}/frame_0.jpg" style="width:80px;border-radius:6px;" onerror="this.style.display='none'"></td>
+      <td>{{ v["file_name"] }}</td>
+      <td>{{ "%.1f"|format(v["file_size"] / 1048576) }}MB</td>
+      <td>{% if v["duration_seconds"] %}{{ "%.0f"|format(v["duration_seconds"]) }}秒{% else %}不明{% endif %}</td>
+      <td>{{ v["captured_at"] or "不明" }}</td>
+      <td>{% if v["width"] %}{{ v["width"] }}x{{ v["height"] }}{% else %}不明{% endif %}</td>
+      <td>
+        {% if v["deletion_candidate_score"] %}
+          スコア {{ v["deletion_candidate_score"] }}
+        {% else %}
+          -
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

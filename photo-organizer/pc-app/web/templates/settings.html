@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}設定{% endblock %}
+{% block content %}
+<h1>設定</h1>
+<p>削除候補の判定基準を調整できます。変更後は次回の「解析開始」から反映されます。</p>
+
+<div class="card">
+  {% for key in keys %}
+  <div style="margin-bottom:16px;">
+    <label>{{ key }}</label><br>
+    <input type="number" step="any" id="threshold-{{ key }}" value="{{ overrides.get(key, defaults.get(key)) }}">
+    <button class="btn secondary" onclick="updateThreshold('{{ key }}')">保存</button>
+    <div style="color:#6b7280;font-size:0.85rem;">初期値: {{ defaults.get(key) }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <h3>サムネイルキャッシュ</h3>
+  <p>解析で作成した動画サムネイルを削除します(プライバシー保護のため、不要になったら削除してください)。</p>
+  <button class="btn danger" onclick="fetch('/api/thumbnails/clear-cache', {method:'POST'}).then(()=>alert('削除しました'))">キャッシュを削除</button>
+</div>
+{% endblock %}
