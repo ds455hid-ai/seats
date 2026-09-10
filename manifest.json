@@ -1,0 +1,13 @@
+{
+  "name": "やることメモ",
+  "short_name": "やることメモ",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#f7f7f5",
+  "theme_color": "#5b8dee",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>やることメモ</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<meta name="theme-color" content="#5b8dee">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="やることメモ">
 <style>
   :root{
     --bg:#f7f7f5;
@@ -146,6 +153,12 @@
 
   .status{text-align:center;font-size:12px;color:var(--faint);margin-top:20px}
 
+  .share-btn{
+    display:block;margin:10px auto 0;background:none;border:1px solid #ddd;color:#999;
+    font-size:12.5px;padding:7px 16px;border-radius:8px;cursor:pointer;
+  }
+  .share-btn:active{border-color:var(--accent);color:var(--accent)}
+
   /* matrix view */
   .matrix-grid{
     display:grid;grid-template-columns:1fr 1fr;gap:8px;
@@ -254,6 +267,7 @@
     <div class="matrix-hint">タスクをドラッグすると分類を変更できます</div>
   </div>
 
+  <button class="share-btn" id="shareBtn" onclick="shareLink()">🔗 このアプリのURLを共有／コピー</button>
   <div class="status" id="status">読み込み中...</div>
 </div>
 
@@ -790,6 +804,27 @@
     mDragId = null;
     isDragging = false;
     document.querySelectorAll('.quadrant').forEach(el => el.classList.remove('drag-over'));
+  }
+
+  async function shareLink() {
+    const url = location.href;
+    const btn = document.getElementById('shareBtn');
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'やることメモ', url });
+        return;
+      } catch (e) {
+        return; // user cancelled the share sheet
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      const original = btn.textContent;
+      btn.textContent = 'コピーしました ✓';
+      setTimeout(() => { btn.textContent = original; }, 1800);
+    } catch (e) {
+      prompt('このURLをコピーしてください', url);
+    }
   }
 
   document.getElementById('taskInput').addEventListener('keydown', e => {
